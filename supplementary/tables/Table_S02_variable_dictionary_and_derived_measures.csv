@@ -1,0 +1,50 @@
+﻿Table S2. Full variable dictionary and derived variable definitions.,Table S2. Full variable dictionary and derived variable definitions.,Table S2. Full variable dictionary and derived variable definitions.
+Variable,Definition,Non missing N
+ISO3,,197
+country,,197
+WHO region,,197
+income group,,192
+female smoking 2000,"Female age-standardized current tobacco smoking prevalence (%), GHO model-based estimate.",165
+female smoking 2005,"Female age-standardized current tobacco smoking prevalence (%), GHO model-based estimate.",165
+female smoking 2010,"Female age-standardized current tobacco smoking prevalence (%), GHO model-based estimate.",165
+female smoking 2022,"Female age-standardized current tobacco smoking prevalence (%), GHO model-based estimate.",165
+clean fuel 2020,"Population primarily relying on clean fuels and technologies for cooking (%), national setting average.",191
+clean fuel urban 2020,Urban population primarily relying on clean fuels and technologies for cooking (%).,191
+clean fuel rural 2020,Rural population primarily relying on clean fuels and technologies for cooking (%).,191
+PM2.5 2019,"Concentration of fine particulate matter PM2.5, national setting average (ug/m3 annual mean).",195
+female LC mort 2021,"Female trachea, bronchus, lung cancer mortality rate, deaths per 100,000 population.",197
+female LC YLL 2021,"Female trachea, bronchus, lung cancer YLL per 100,000 population.",197
+female LC DALY 2021,"Female trachea, bronchus, lung cancer DALY per 100,000 population.",196
+female LC incidence 2021,"Female tracheal, bronchus, lung cancer age-standardized incidence per 100,000 population.",194
+GDP,"GDP per capita, current US$, nearest 2021 or latest <=2021 from HIDR determinants.",193
+HDI,"Human Development Index from Global Data Lab in HIDR; country setting average, 2021 where available.",164
+SDI,"Socio-demographic Index, 0-1 GBD 2021 composite of fertility under age 25, mean education age 15+, and lag-distributed income per capita; 2021 country value.",197
+urbanisation,"Urban population (% of total population), World Bank API, 2021.",194
+age65,"Population ages 65 and above (% of total population), World Bank API, 2021.",194
+GDP source year,,193
+HDI source year,,164
+urbanisation source year,,194
+urbanisation source,,194
+age65 source year,,194
+age65 source,,194
+SDI source year,Source year for merged SDI value.,197
+SDI source,Source note for merged SDI value.,197
+SDI source location,Location label used in the SDI source table.,197
+historical female smoking,"Mean of female smoking 2000, female smoking 2005, and female smoking 2010.",165
+clean fuel deficit,100 - clean fuel 2020.,191
+rural clean fuel disadvantage,clean fuel urban 2020 - clean fuel rural 2020.,191
+z historical smoking,,165
+z current smoking,,165
+z clean fuel deficit,,191
+z rural clean fuel disadvantage,,191
+z PM2.5,,195
+z female LC mortality,,197
+z female LC YLL,,197
+z female LC DALY,,196
+multiple-exposure score,"equal-weighted multiple-exposure score: mean of z current smoking, z clean fuel deficit, and z PM2.5; complete cases only.",163
+multiple-exposure score extended,multiple-exposure score plus z rural clean fuel disadvantage; complete cases only.,163
+simple mismatch,z female LC mortality - z historical smoking.,165
+simple mismatch current,z female LC mortality - z current smoking.,165
+analysis core complete,"TRUE when complete on historical/current smoking, clean fuel total/urban/rural, PM2.5, female LC mortality, YLL, DALY, and incidence.",197
+analysis core plus covariates complete,"TRUE when analysis core complete plus GDP, HDI, SDI, urbanisation, and age65 are non-missing.",197
+Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): variable dictionary.,Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): variable dictionary.,Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): variable dictionary.

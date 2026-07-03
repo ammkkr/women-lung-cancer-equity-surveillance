@@ -1,0 +1,35 @@
+﻿cff-version: 1.2.0
+message: "If you use this repository, please cite the associated manuscript and this repository."
+title: "Global visibility gaps in women's lung-cancer prevention equity: public data and code"
+type: dataset
+authors:
+  - family-names: Wang
+    given-names: Shen
+    affiliation: "School of Cancer Science, College of Medical, Veterinary & Life Sciences, University of Glasgow"
+  - family-names: Zhou
+    given-names: Jing
+    orcid: "https://orcid.org/0000-0003-4076-4083"
+    affiliation: "Key Laboratory of Tropical Translational Medicine of Ministry of Education, School of Public Health, Hainan Academy of Medical Sciences, Hainan Medical University"
+  - family-names: Jiang
+    given-names: Zhangdong
+    affiliation: "School of Cancer Science, College of Medical, Veterinary & Life Sciences, University of Glasgow"
+  - family-names: Li
+    given-names: Pengyu
+    affiliation: "International Center for Aging and Cancer, Hainan Medical University"
+  - family-names: Xiao
+    given-names: Sha
+    orcid: "https://orcid.org/0000-0002-1645-4846"
+    affiliation: "Key Laboratory of Tropical Translational Medicine of Ministry of Education, School of Public Health, Hainan Academy of Medical Sciences, Hainan Medical University"
+keywords:
+  - lung cancer
+  - health equity
+  - women
+  - tobacco
+  - PM2.5
+  - clean fuels
+  - global health
+  - ecological study
+license: MIT
+repository-code: "https://github.com/ammkkr/women-lung-cancer-equity-surveillance"
+url: "https://github.com/ammkkr/women-lung-cancer-equity-surveillance"
+date-released: "2026-06-29"

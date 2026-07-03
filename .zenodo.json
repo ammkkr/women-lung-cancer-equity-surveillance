@@ -1,0 +1,48 @@
+﻿{
+  "title": "Global visibility gaps in women's lung-cancer prevention equity: public data and code",
+  "upload_type": "dataset",
+  "description": "Cleaned aggregate country-level dataset, source indicator dictionary, analysis outputs, supplementary tables, supplementary figures, and reproduction scripts for a cross-national ecological study of visibility gaps in women's lung-cancer prevention equity.",
+  "creators": [
+    {
+      "name": "Wang, Shen",
+      "affiliation": "School of Cancer Science, College of Medical, Veterinary & Life Sciences, University of Glasgow"
+    },
+    {
+      "name": "Zhou, Jing",
+      "affiliation": "Key Laboratory of Tropical Translational Medicine of Ministry of Education, School of Public Health, Hainan Academy of Medical Sciences, Hainan Medical University",
+      "orcid": "0000-0003-4076-4083"
+    },
+    {
+      "name": "Jiang, Zhangdong",
+      "affiliation": "School of Cancer Science, College of Medical, Veterinary & Life Sciences, University of Glasgow"
+    },
+    {
+      "name": "Li, Pengyu",
+      "affiliation": "International Center for Aging and Cancer, Hainan Medical University"
+    },
+    {
+      "name": "Xiao, Sha",
+      "affiliation": "Key Laboratory of Tropical Translational Medicine of Ministry of Education, School of Public Health, Hainan Academy of Medical Sciences, Hainan Medical University",
+      "orcid": "0000-0002-1645-4846"
+    }
+  ],
+  "keywords": [
+    "lung cancer",
+    "health equity",
+    "women",
+    "tobacco",
+    "PM2.5",
+    "clean fuels",
+    "global health",
+    "ecological study"
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/ammkkr/women-lung-cancer-equity-surveillance",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

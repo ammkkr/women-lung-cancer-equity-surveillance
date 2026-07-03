@@ -1,0 +1,27 @@
+﻿Table S3. Core overlap counts and variable-level missingness.,Table S3. Core overlap counts and variable-level missingness.,Table S3. Core overlap counts and variable-level missingness.,Table S3. Core overlap counts and variable-level missingness.
+Subtable 1. Core overlap counts.,Subtable 1. Core overlap counts.,Subtable 1. Core overlap counts.,Subtable 1. Core overlap counts.
+Overlap set,Variables,Variables,Country N
+analysis core complete,historical female smoking; female smoking 2022; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021,historical female smoking; female smoking 2022; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021,163
+analysis core plus covariates complete,historical female smoking; female smoking 2022; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021; GDP; HDI; SDI; urbanisation; age65,historical female smoking; female smoking 2022; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021; GDP; HDI; SDI; urbanisation; age65,142
+all requested variables including SDI,female smoking 2000; female smoking 2005; female smoking 2010; female smoking 2022; historical female smoking; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021; GDP; HDI; SDI; urbanisation; age65,female smoking 2000; female smoking 2005; female smoking 2010; female smoking 2022; historical female smoking; clean fuel 2020; clean fuel urban 2020; clean fuel rural 2020; PM2.5 2019; female LC mort 2021; female LC YLL 2021; female LC DALY 2021; female LC incidence 2021; GDP; HDI; SDI; urbanisation; age65,142
+Subtable 2. Missingness core counts.,Subtable 2. Missingness core counts.,Subtable 2. Missingness core counts.,Subtable 2. Missingness core counts.
+Variable,Non missing N,Missing N,Non missing pct
+female smoking 2000,165,32,83.8
+female smoking 2005,165,32,83.8
+female smoking 2010,165,32,83.8
+female smoking 2022,165,32,83.8
+historical female smoking,165,32,83.8
+clean fuel 2020,191,6,97.0
+clean fuel urban 2020,191,6,97.0
+clean fuel rural 2020,191,6,97.0
+PM2.5 2019,195,2,99.0
+female LC mort 2021,197,0,100.0
+female LC YLL 2021,197,0,100.0
+female LC DALY 2021,196,1,99.5
+female LC incidence 2021,194,3,98.5
+GDP,193,4,98.0
+HDI,164,33,83.2
+SDI,197,0,100.0
+urbanisation,194,3,98.5
+age65,194,3,98.5
+Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): core overlap counts; missingness core counts.,Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): core overlap counts; missingness core counts.,Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): core overlap counts; missingness core counts.,Note. Values are country-level unless otherwise indicated. Blank cells indicate not applicable or not estimated in the source output. Source file(s): core overlap counts; missingness core counts.
