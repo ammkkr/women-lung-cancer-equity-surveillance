@@ -1,4 +1,4 @@
-﻿x,x_label,y,y_label,n,rho,p_value
+x,x_label,y,y_label,n,rho,p_value
 clean_fuel_deficit,Clean-fuel deficit,SDI,SDI,191,-0.8984690908448139,1.7448614188379988e-69
 clean_fuel_deficit,Clean-fuel deficit,HDI,HDI,161,-0.9089839678252788,2.6007061645990475e-62
 clean_fuel_deficit,Clean-fuel deficit,urbanisation,Urbanisation,189,-0.6628572332233778,2.764826336189977e-25

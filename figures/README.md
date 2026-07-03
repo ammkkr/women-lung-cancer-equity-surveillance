@@ -1,4 +1,4 @@
-﻿# Figures folder
+# Figures folder
 
 This folder contains the main manuscript figures and simplified reproduced figures.
 

@@ -1,4 +1,4 @@
-﻿# Supplementary materials
+# Supplementary materials
 
 This folder contains supplementary figures, supplementary tables, and indexes exported
 from the manuscript supplementary appendix.

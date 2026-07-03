@@ -1,4 +1,4 @@
-﻿"""Reproduce key results and simplified figures from the public repository data.
+"""Reproduce key results and simplified figures from the public repository data.
 
 The publication figures in ``figures/`` are the final manuscript-ready versions. This
 script provides a transparent, portable check that the shared aggregate dataset and

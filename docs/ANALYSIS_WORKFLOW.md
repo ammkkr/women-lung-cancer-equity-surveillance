@@ -1,4 +1,4 @@
-﻿# Analysis workflow
+# Analysis workflow
 
 This repository is organised around the manuscript workflow rather than around raw data
 extraction. The shared files allow readers to inspect the aggregate dataset, rerun key

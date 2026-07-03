@@ -1,4 +1,4 @@
-﻿model_id,model_label,term,estimate,robust_se,statistic,p_value,conf_low,conf_high,n,r_squared,term_label
+model_id,model_label,term,estimate,robust_se,statistic,p_value,conf_low,conf_high,n,r_squared,term_label
 nonhic_base,Non-high-income: PM2.5 + clean-fuel deficit,z_PM25,0.0794124251837974,0.0246031868233903,3.2277292268617748,0.0016877412254183,0.0306004032612771,0.1282244471063177,103,0.1024329153067241,z_PM25
 nonhic_region_adjusted,Non-high-income: + WHO region,z_PM25,0.1000559889927182,0.036769650469799,2.721156924646313,0.0077381509301605,0.0270590034990032,0.1730529744864331,103,0.1409730701095557,z_PM25
 nonhic_extended_adjusted,"Non-high-income: + WHO region, SDI, urbanisation, age65",z_PM25,0.0920862432290123,0.047694765032146,1.930741102654488,0.0565943325103075,-0.0026396769915321,0.1868121634495568,103,0.1570181569600375,z_PM25

@@ -1,4 +1,4 @@
-﻿outcome,outcome_label,term,estimate,conf_low,conf_high,p_value,n,r_squared,adj_r_squared
+outcome,outcome_label,term,estimate,conf_low,conf_high,p_value,n,r_squared,adj_r_squared
 z_female_LC_mortality,Female LC mortality,z_historical_smoking,0.1811919048853398,0.0741338977805764,0.2882499119901033,0.0011358761508571,163,0.7476121053940676,0.7327657586525422
 z_female_LC_YLL,Female LC YLL,z_historical_smoking,0.2282167113841123,0.0934009789719608,0.3630324437962638,0.0011333530697533,163,0.7122246471387017,0.6952966852056841
 z_female_LC_DALY,Female LC DALY,z_historical_smoking,0.226878188029718,0.092984820681076,0.3607715553783599,0.0011210759236071,163,0.7139272000479707,0.6970993882860866

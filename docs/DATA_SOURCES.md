@@ -1,4 +1,4 @@
-﻿# Data sources and provenance
+# Data sources and provenance
 
 This repository uses public aggregate country-level indicators linked to, or compatible
 with, the WHO Health Inequality Data Repository and related global health data systems.

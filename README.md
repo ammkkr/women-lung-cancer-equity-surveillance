@@ -1,4 +1,4 @@
-﻿# Women's lung-cancer prevention equity surveillance
+# Women's lung-cancer prevention equity surveillance
 
 This repository contains the public, aggregate, country-level data package and
 reproducibility materials for the manuscript:

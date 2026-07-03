@@ -1,4 +1,4 @@
-﻿component,available_in_HIDR,disaggregation,notes
+component,available_in_HIDR,disaggregation,notes
 tobacco,yes,"sex; DHS/Eurostat sometimes education, wealth, residence, migration",Exposure side visible; current and model-based tobacco measures available.
 second-hand smoke,partially visible,sex at regional level,"WHO GHO adult second-hand smoke indicators were identified, but available API output contained regional 2004 estimates rather than country-level longitudinal data; not included in main models."
 clean fuels,yes,residence; DHS/UNICEF sometimes wealth and subnational region,Exposure and household energy poverty side visible.

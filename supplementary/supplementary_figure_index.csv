@@ -1,4 +1,4 @@
-﻿figure_id,title,png_file,pdf_file
+figure_id,title,png_file,pdf_file
 Figure S1,"Figure S1. Prevention-care pathway visibility matrix. Indicator availability across exposure, burden, diagnosis, treatment, survival, and socioeconomic outcome domains.",supplementary/figures/Figure_S1_data_visibility_matrix.png,supplementary/figures/Figure_S1_data_visibility_matrix.pdf
 Figure S2,Figure S2. Missingness heatmap for core indicators. Countries and variables are ordered to show where complete overlap is gained or lost.,supplementary/figures/Figure_S2_missingness_heatmap.png,supplementary/figures/Figure_S2_missingness_heatmap.pdf
 Figure S3,Figure S3. Missingness by WHO region and income group. Coverage patterns show the data-system dimension of equity surveillance.,supplementary/figures/Figure_S3_missingness_by_region_and_income.png,supplementary/figures/Figure_S3_missingness_by_region_and_income.pdf

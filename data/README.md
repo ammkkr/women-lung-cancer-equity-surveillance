@@ -1,4 +1,4 @@
-﻿# Data folder
+# Data folder
 
 This folder contains cleaned aggregate country-level data and metadata.
 

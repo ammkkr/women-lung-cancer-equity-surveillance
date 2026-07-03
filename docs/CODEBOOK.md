@@ -1,4 +1,4 @@
-﻿# Codebook
+# Codebook
 
 The main analytic file is:
 

@@ -1,4 +1,4 @@
-﻿# Scripts
+# Scripts
 
 ## `generate_figures.py`
 

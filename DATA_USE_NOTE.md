@@ -1,4 +1,4 @@
-﻿# Data use note
+# Data use note
 
 This repository provides cleaned aggregate country-level indicators assembled from public
 global health and development sources. It does not contain individual-level data,

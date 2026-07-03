@@ -1,4 +1,4 @@
-﻿# Reproducibility guide
+# Reproducibility guide
 
 This guide explains how to reproduce the repository checks from the shared aggregate
 dataset. The script is intentionally portable and uses only relative paths.

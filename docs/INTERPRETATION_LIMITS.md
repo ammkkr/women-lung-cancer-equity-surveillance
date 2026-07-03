@@ -1,4 +1,4 @@
-﻿# Interpretation limits
+# Interpretation limits
 
 This repository is intended to support transparent review and reuse of a country-level
 equity surveillance analysis. Several boundaries are essential.
