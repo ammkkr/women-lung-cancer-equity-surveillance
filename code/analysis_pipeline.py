@@ -779,7 +779,7 @@ def draw_continuous_world_map(ax: plt.Axes, country: pd.DataFrame, value_col: st
         props = feat.get("properties", {})
         iso = props.get("ADM0_A3") or props.get("ISO_A3") or props.get("SOV_A3")
         value = values.get(iso, np.nan)
-        face = "#E7E7E7" if pd.isna(value) else cmap(norm(float(value)))
+        face = "#C9C9C9" if pd.isna(value) else cmap(norm(float(value)))
         geom = feat.get("geometry", {})
         if geom.get("type") == "Polygon":
             polys = [geom.get("coordinates", [])]
@@ -792,7 +792,7 @@ def draw_continuous_world_map(ax: plt.Axes, country: pd.DataFrame, value_col: st
                 xy = np.asarray(ring)
                 if len(xy) >= 3:
                     ax.add_patch(patches.Polygon(
-                        xy, closed=True, facecolor=face, edgecolor="white", linewidth=0.18
+                        xy, closed=True, facecolor=face, edgecolor="#F7F7F7", linewidth=0.13
                     ))
     ax.set_xlim(-180, 180)
     ax.set_ylim(-60, 90)
@@ -1019,7 +1019,7 @@ def plot_country_urban_rural_access(ax: plt.Axes, country: pd.DataFrame) -> None
         )
     ax.set_xlim(-3, 103)
     ax.set_ylim(-3, 103)
-    ax.set_aspect("equal", adjustable="box")
+    ax.set_aspect("auto")
     ax.set_xlabel("Rural clean-fuel access (%)")
     ax.set_ylabel("Urban clean-fuel access (%)")
     ax.grid(color=GRID, linewidth=.5)
@@ -1100,10 +1100,11 @@ def plot_adjusted_incidence_relationship(ax: plt.Axes, model_stats: dict[str, ob
 
 def plot_model_residual_map(ax: plt.Axes, model_stats: dict[str, object], spatial_diag: pd.DataFrame) -> None:
     d = model_stats["diagnostics"][["iso3", "residual"]].copy()
-    max_abs = float(np.nanmax(np.abs(d["residual"])))
-    vmax = max(2.0, math.ceil(max_abs * 2) / 2)
+    robust_abs = float(np.nanquantile(np.abs(d["residual"]), .95))
+    vmax = max(1.5, math.ceil(robust_abs * 4) / 4)
     cmap = LinearSegmentedColormap.from_list(
-        "residual_diverging", ["#2F6690", "#BFD7E4", "#F7F7F7", "#EBC8AE", "#B8573E"]
+        "residual_diverging",
+        ["#083D5B", "#4F8EAE", "#BED5E0", "#F7F7F7", "#EDC4AB", "#C96A47", "#842D24"],
     )
     norm = mpl.colors.TwoSlopeNorm(vmin=-vmax, vcenter=0, vmax=vmax)
     geo = json.loads(NATURAL_EARTH.read_text(encoding="utf-8"))
@@ -1112,7 +1113,7 @@ def plot_model_residual_map(ax: plt.Axes, model_stats: dict[str, object], spatia
         props = feat.get("properties", {})
         iso = props.get("ADM0_A3") or props.get("ISO_A3") or props.get("SOV_A3")
         value = values.get(iso, np.nan)
-        face = "#E7E7E7" if pd.isna(value) else cmap(norm(float(value)))
+        face = "#C9C9C9" if pd.isna(value) else cmap(norm(float(value)))
         geom = feat.get("geometry", {})
         if geom.get("type") == "Polygon":
             polys = [geom.get("coordinates", [])]
@@ -1125,7 +1126,7 @@ def plot_model_residual_map(ax: plt.Axes, model_stats: dict[str, object], spatia
                 xy = np.asarray(ring)
                 if len(xy) >= 3:
                     ax.add_patch(patches.Polygon(
-                        xy, closed=True, facecolor=face, edgecolor="white", linewidth=.18
+                        xy, closed=True, facecolor=face, edgecolor="#F7F7F7", linewidth=.13
                     ))
     ax.set_xlim(-180, 180)
     ax.set_ylim(-60, 90)
@@ -1134,7 +1135,7 @@ def plot_model_residual_map(ax: plt.Axes, model_stats: dict[str, object], spatia
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
     cb = ax.figure.colorbar(sm, ax=ax, orientation="horizontal", fraction=.040, pad=.015,
-                            shrink=.66, aspect=32)
+                            shrink=.66, aspect=32, extend="both")
     cb.set_label("Main-model residual (standardised incidence units)", fontsize=7.0, labelpad=2)
     cb.ax.tick_params(labelsize=6.6, length=2.2, width=.6)
     cb.outline.set_linewidth(.55)
@@ -1213,9 +1214,15 @@ def save_main_figures(country: pd.DataFrame, src: pd.DataFrame, effects: pd.Data
     fig3 = plt.figure(figsize=(14.5, 9.4))
     outer3 = fig3.add_gridspec(2, 1, height_ratios=[1.12, 1.0], hspace=.26)
     maps = outer3[0, 0].subgridspec(1, 3, wspace=.08)
-    smoking_cmap = LinearSegmentedColormap.from_list("smoking", ["#EEF4F8", "#8AB6CF", "#285E83"])
-    fuel_cmap = LinearSegmentedColormap.from_list("fuel", ["#FFF7DF", "#E6B65C", "#B65A3A"])
-    pm_cmap = LinearSegmentedColormap.from_list("pm25", ["#F2F4EA", "#9BB58A", "#5A4C78"])
+    smoking_cmap = LinearSegmentedColormap.from_list(
+        "smoking", ["#D7E6F0", "#83B2CC", "#4F8FB5", "#173F5F"]
+    )
+    fuel_cmap = LinearSegmentedColormap.from_list(
+        "fuel", ["#F4E1AA", "#E0AA45", "#CF6E34", "#8B2F2B"]
+    )
+    pm_cmap = LinearSegmentedColormap.from_list(
+        "pm25", ["#D7E4D2", "#9FB89A", "#6F906B", "#3A2C56"]
+    )
     draw_continuous_world_map(
         fig3.add_subplot(maps[0, 0]), country, "female_smoking_2022", "Current female smoking, 2022",
         smoking_cmap, 0, 45, "Prevalence (%)", panel="A",
@@ -1747,7 +1754,7 @@ FIGURE_LEGENDS = [
     "Figure 1. Availability and patterned missingness in the four-indicator analytic frame. (A) Country and territory missingness patterns for current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence. Grey map areas were not matched to the analytic frame and are not counted as missing. (B) Indicator-specific availability. The dashed line marks the 163-country complete overlap and is not an adequacy threshold. (C) Complete-frame inclusion by World Bank income group. (D) Median HDI and SDI differences between excluded and included countries; points are excluded-minus-included differences and lines are 5000-sample bootstrap 95% confidence intervals. LIC, low-income country; LMIC, lower-middle-income country; UMIC, upper-middle-income country; HIC, high-income country.",
     "Figure 2. Availability audit across prevention, burden, care and equity domains. (A) Adjudicated component-by-dimension audit. A indicates adequate for this analysis; L, available with limitations; LH, a relevant source was located but was not sufficiently harmonised or integrated; NG, no compatible global indicator was identified within the predefined source frame; NA, not applicable. (B) Audit key and counts of overall classifications by domain. Classifications describe analytical suitability within the source frame and do not imply that no local, registry or research data exist.",
     "Figure 3. Global geography and income patterning of measurable prevention exposures. (A) Country-level choropleths for current female smoking in 2022, clean-fuel deficit in 2020 and ambient PM2.5 in 2019. Each map has its own scale; grey denotes no mapped value, and countries or territories without Natural Earth geometry remain in tabular analyses. (B) Country distributions by World Bank income group; boxes show medians and interquartile ranges, whiskers extend to 1.5 times the interquartile range, and points are countries. (C) Income-group medians for urban and rural clean-fuel access; labelled gaps are urban minus rural access. (D) Country-level urban versus rural clean-fuel access. The dashed diagonal denotes equal access, and selected labels identify the five largest observed urban-rural gaps rather than country rankings. Income-unclassified settings were excluded from income-group panels but retained in panel D. LIC, low-income country; LMIC, lower-middle-income country; UMIC, upper-middle-income country; HIC, high-income country.",
-    "Figure 4. Historical female smoking and age-standardised lung-cancer incidence. (A) Unadjusted country-level association between the 2000-2010 female smoking mean and 2021 age-standardised female lung-cancer incidence; colours denote WHO regions. (B) Frisch-Waugh-Lovell partial-regression display after adjustment of both variables for log GDP, urbanisation and WHO region. The line and shaded band show the adjusted fit and pointwise HC3 95% confidence interval; the annotated coefficient is from the prespecified primary model. (C) Adjusted R-squared and AIC for nested models. (D) Geographic distribution of primary-model residuals; positive values indicate incidence higher than predicted by the model and negative values indicate lower incidence. Residuals are model diagnostics, not estimates of omitted exposures or causal effects. Grey denotes no mapped model residual. All model variables are standardised.",
+    "Figure 4. Historical female smoking and age-standardised lung-cancer incidence. (A) Unadjusted country-level association between the 2000-2010 female smoking mean and 2021 age-standardised female lung-cancer incidence; colours denote WHO regions. (B) Frisch-Waugh-Lovell partial-regression display after adjustment of both variables for log GDP, urbanisation and WHO region. The line and shaded band show the adjusted fit and pointwise HC3 95% confidence interval; the annotated coefficient is from the prespecified primary model. (C) Adjusted R-squared and AIC for nested models. (D) Geographic distribution of primary-model residuals; positive values indicate incidence higher than predicted by the model and negative values indicate lower incidence. Colour limits are symmetric at the 95th percentile of absolute residuals, with more extreme values shown at the darkest endpoint colours. Residuals are model diagnostics, not estimates of omitted exposures or causal effects. Grey denotes no mapped model residual. All model variables are standardised.",
 ]
 
 
