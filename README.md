@@ -2,11 +2,11 @@
 
 Reproducibility package for:
 
-**Indicator availability and exposure inequalities in women's lung cancer prevention: an HIDR-centred ecological study across 197 countries and territories**
+**Global indicator availability and exposure inequalities in women's lung-cancer prevention: a cross-national ecological study**
 
 ## Contents
 
-- `data/country_level_analysis_dataset_v7.csv`: cleaned aggregate country-level analytic data.
+- `data/country_level_analysis_dataset.csv`: cleaned aggregate country-level analytic data.
 - `data/source_indicator_dictionary.csv`: indicator definitions and source metadata.
 - `data/source_access_manifest.csv`: provider terms, access dates and repository treatment.
 - `data/external/ne_110m_admin_0_countries.geojson`: map geometry used for display and spatial sensitivity analyses.
@@ -37,4 +37,4 @@ Source datasets are publicly available from WHO, IHME/GBD-linked outputs, the Wo
 
 ## Audit reproducibility
 
-Shen Wang and Jing Zhou independently coded 18 pathway components across 10 dimensions. Their archived records agree in 180/180 cells (100%; Cohen's kappa 1.000), with no adjudication change required. Two AI-assisted read-only checks reproduced the final classifications but were not included in the human inter-rater statistic.
+Shen Wang and Jing Zhou independently coded 18 pathway components across 10 dimensions. Their archived records agree in 180/180 cells (100%; Cohen's kappa 1.000), with no adjudication change required.

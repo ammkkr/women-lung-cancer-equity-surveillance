@@ -1,4 +1,4 @@
-﻿source,role,entry_points,search_dates,decision_rule
+﻿Source,Role in audit,Entry points,Search dates,Decision rule
 WHO HIDR and HEAT,Formal audit frame,"WHO inequality repository, downloaded indicator files and metadata",2026-05-01 to 2026-07-13,Country-level indicator or disaggregation relevant to the prespecified pathway
 WHO Global Health Observatory,Formal audit frame,"Indicator catalogue, metadata pages and machine-readable downloads",2026-05-01 to 2026-07-13,"Harmonised definition, country identifier, year and usable value"
 WHO Global Health Estimates,Formal audit frame,"Sex-specific lung-cancer mortality, YLL and DALY files and metadata",2026-05-01 to 2026-07-13,Used for coverage and triangulation; explicit standardisation required for primary burden modelling

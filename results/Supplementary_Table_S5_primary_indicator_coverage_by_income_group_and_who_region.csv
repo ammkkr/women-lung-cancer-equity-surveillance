@@ -1,4 +1,4 @@
-﻿stratifier,group,n_total,n_complete,complete_percent,coverage_female_smoking_2022,coverage_clean_fuel_2020,coverage_PM25_2019,coverage_female_LC_incidence_2021
+﻿Stratifier,Group,Total settings,Complete settings,Complete (%),Female smoking available (%),Clean-fuel access available (%),Ambient PM2.5 available (%),Female lung-cancer incidence available (%)
 Income group,High-income,64,57,89.1,90.6,96.9,98.4,98.4
 Income group,Low-income,25,18,72.0,72.0,100.0,100.0,100.0
 Income group,Lower-middle-income,50,41,82.0,84.0,96.0,100.0,98.0

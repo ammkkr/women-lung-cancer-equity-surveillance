@@ -12,6 +12,7 @@ from matplotlib import patches
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import numpy as np
 import pandas as pd
+from PIL import Image
 from scipy import stats
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -23,7 +24,7 @@ from docx.shared import Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
-COUNTRY_DATA = DATA_DIR / "country_level_analysis_dataset_v7.csv"
+COUNTRY_DATA = DATA_DIR / "country_level_analysis_dataset.csv"
 SOURCE_DICT = DATA_DIR / "source_indicator_dictionary.csv"
 NATURAL_EARTH = DATA_DIR / "external" / "ne_110m_admin_0_countries.geojson"
 SENSITIVITY_MASTER = COUNTRY_DATA
@@ -33,8 +34,8 @@ SUPP_FIG_DIR = OUT_DIR / "supplementary_figures"
 TABLE_DIR = OUT_DIR / "tables"
 
 TITLE = (
-    "Indicator availability and exposure inequalities in women's lung cancer prevention: "
-    "an HIDR-centred ecological study across 197 countries and territories"
+    "Global indicator availability and exposure inequalities in women's lung-cancer prevention: "
+    "a cross-national ecological study"
 )
 
 INCOME_ORDER = ["Low-income", "Lower-middle-income", "Upper-middle-income", "High-income"]
@@ -94,6 +95,16 @@ def save_pub(fig: plt.Figure, base: Path, dpi: int = 600) -> None:
     fig.savefig(base.with_suffix(".pdf"), bbox_inches="tight")
     fig.savefig(base.with_suffix(".png"), bbox_inches="tight", dpi=dpi)
     fig.savefig(base.with_suffix(".tiff"), bbox_inches="tight", dpi=dpi, pil_kwargs={"compression": "tiff_lzw"})
+
+
+def flatten_tiff_to_rgb(path: Path, dpi: int = 600) -> None:
+    with Image.open(path) as image:
+        if image.mode == "RGBA":
+            rgb = Image.new("RGB", image.size, "white")
+            rgb.paste(image, mask=image.getchannel("A"))
+        else:
+            rgb = image.convert("RGB")
+        rgb.save(path, compression="tiff_lzw", dpi=(dpi, dpi))
 
 
 def add_panel(ax: plt.Axes, label: str, title: str, x: float = -0.03, y: float = 1.045,
@@ -1311,7 +1322,6 @@ def plot_source_workflow(fig: plt.Figure) -> None:
     arrows = [((.25, .78), (.30, .78)), ((.54, .78), (.59, .78)), ((.76, .78), (.81, .78)), ((.885, .68), (.35, .45)), ((.44, .35), (.56, .35))]
     for a, b in arrows:
         ax.annotate("", xy=b, xytext=a, xycoords=ax.transAxes, arrowprops={"arrowstyle": "-|>", "color": "#6D8E88", "lw": 1.2})
-    ax.text(.5, .10, "Human coder agreement was quantified; two AI-assisted read-only checks were secondary quality control only.", transform=ax.transAxes, ha="center", fontsize=8.0, color="#555555")
 
 
 def plot_missingness_heatmaps(fig: plt.Figure, country: pd.DataFrame) -> None:
@@ -1508,16 +1518,16 @@ CORRESPONDING = [
 
 ABSTRACT = {
     "Background": (
-        "Analyses can quantify exposure and lung-cancer burden without showing whether indicators needed to monitor prevention and care inequalities are comparable across settings. We assessed indicator availability, patterned missingness and measurable exposure inequalities for women's lung-cancer prevention within a Health Inequality Data Repository-centred source frame."
+        "Global datasets quantify exposures and lung-cancer burden, but their capacity to compare inequalities across prevention and care is unclear. We assessed indicator availability, missingness and exposure inequalities for women's lung-cancer prevention within a Health Inequality Data Repository-centred source frame."
     ),
     "Methods": (
-        "We conducted an ecological study of 197 countries and territories. The analytic frame comprised current female smoking, clean-fuel access, ambient fine particulate matter (PM2.5) and age-standardised female lung-cancer incidence. A structured audit classified exposure, burden, care-pathway and socioeconomic outcome components by coverage, disaggregation, comparability, machine-readability, uncertainty and age standardisation. Income inequalities were estimated as median differences with bootstrap 95% confidence intervals and Cliff's delta. Regression of age-standardised incidence on the available 2000-2010 female smoking proxy, gross domestic product, urbanisation and WHO region provided a validation analysis; HC3, influence and spatial sensitivity analyses were used."
+        "We conducted a cross-national ecological study of 197 countries and territories. The analytic frame comprised current female smoking, clean-fuel access, ambient fine particulate matter (PM2.5) and age-standardised female lung-cancer incidence. A structured audit assessed exposure, burden, care-pathway and socioeconomic outcome indicators for coverage, disaggregation, comparability, machine-readability, uncertainty and age standardisation. Income-group inequalities were quantified using median differences with bootstrap 95% confidence intervals and Cliff's delta. As a data-coherence check, we modelled age-standardised incidence against the available 2000-2010 female smoking proxy, gross domestic product, urbanisation and WHO region, with HC3, influence and spatial sensitivity analyses."
     ),
     "Results": (
-        "The complete four-indicator frame included 163/197 countries and territories; 28 were missing female smoking only. Complete inclusion ranged from 72.0% in low-income to 89.1% in high-income settings. Low-income versus high-income countries had a 96.2-percentage-point higher median clean-fuel deficit (95% CI 89.4 to 98.6) and 24.1 micrograms/m3 higher median PM2.5 (95% CI 14.8 to 28.6), whereas female smoking was 15.9 percentage points higher in high-income countries (95% CI 10.6 to 18.5). Three of six exposure components were adequate for analysis, compared with one of four burden components; care and socioeconomic outcome indicators were limited, insufficiently integrated or not identified as compatible global indicators. Historical female smoking was positively associated with age-standardised incidence (standardised beta 0.323, 95% CI 0.163 to 0.483). The estimate was robust to influence and spatial sensitivity analyses, although residual spatial autocorrelation remained."
+        "All four analytic indicators were available for 163/197 settings; 28 of the 34 excluded settings lacked female smoking only. Complete coverage ranged from 72.0% in low-income to 89.1% in high-income settings. Compared with high-income countries, low-income countries had a 96.2-percentage-point higher median clean-fuel deficit (95% CI 89.4 to 98.6) and 24.1 micrograms/m3 higher median PM2.5 (95% CI 14.8 to 28.6). Female smoking was 15.9 percentage points higher in high-income countries (95% CI 10.6 to 18.5). Three of six exposure components and one of four burden components met the analytic criteria; care-pathway and socioeconomic outcome indicators were limited, insufficiently integrated or not identified as compatible global indicators. Historical female smoking was positively associated with age-standardised incidence (standardised coefficient 0.323, 95% CI 0.163 to 0.483). The association remained positive in influence and spatial sensitivity analyses, although residual spatial autocorrelation persisted."
     ),
     "Conclusions": (
-        "Global data support monitoring of selected exposure inequalities, but not the full prevention-care pathway. The principal contribution is an auditable account of what can and cannot be compared; the ecological incidence model is supportive rather than causal evidence."
+        "Current global data permit comparison of selected exposure inequalities but do not cover the full prevention-care pathway. The audit identifies the indicators that can be compared now and the data gaps that limit women-centred lung-cancer equity surveillance. The ecological incidence model supports data coherence and does not establish causality."
     ),
 }
 
@@ -1525,16 +1535,16 @@ KEYWORDS = "Lung Neoplasms; Women; Health Status Disparities; Tobacco Smoking; A
 
 BACKGROUND = [
     (
-        "Lung cancer is a leading cause of cancer incidence and death among women, with marked variation between countries.[1-3] Tobacco control remains central to prevention: active smoking is the dominant preventable cause, and population patterns reflect the timing, intensity and decline of successive smoking epidemics.[4-8] Current female smoking prevalence, however, cannot represent accumulated exposure over the latency period of lung cancer. Prevention surveillance also needs to recognise second-hand smoke, ambient air pollution, household fuel combustion, occupational carcinogens and residential radon, without treating country-level proxies as personal exposure measurements.[6,9-14]"
+        "Lung cancer is a leading cause of cancer incidence and death among women, and rates vary markedly between countries.[1-3] Active smoking remains the dominant preventable cause, with population patterns shaped by when smoking epidemics began, peaked and declined.[4-8] Current female smoking prevalence cannot capture exposure accumulated over the latency period of lung cancer. Surveillance must also account for second-hand smoke, ambient air pollution, household fuel combustion, occupational carcinogens and residential radon, while recognising that national indicators are not measurements of personal exposure.[6,9-14]"
     ),
     (
-        "Recent global analyses have estimated age-standardised lung-cancer burden attributable to active and second-hand smoking, ambient and household particulate pollution, and other risks across countries and over time.[14-16] These studies provide important estimates of attributable burden and socioeconomic gradients. They do not answer a different infrastructure question: whether the indicators required to monitor women's prevention, diagnosis, treatment, survival and social inequalities are available in a comparable, disaggregated and reusable form. A data system may contain national exposure or burden estimates while remaining unable to show who is screened, when disease is diagnosed, whether treatment is received, or whether outcomes differ by wealth, education or residence."
+        "Global burden studies estimate lung-cancer burden attributable to active and second-hand smoking, ambient and household particulate pollution, and other risks across countries and over time.[14-16] A separate question concerns the underlying information infrastructure: are the indicators needed to compare prevention, diagnosis, treatment, survival and social inequalities among women available in compatible, disaggregated and reusable forms? National exposure and burden estimates alone cannot show who is screened, when disease is diagnosed, whether treatment is received, or whether outcomes differ by wealth, education or residence."
     ),
     (
-        "The WHO Health Inequality Data Repository (HIDR) provides a timely setting for this question. WHO released Health Equity Assessment Toolkit version 7 in March 2026 with the 2025 HIDR data update; the repository contains more than 13 million data points across over 2400 indicators, 22 inequality dimensions and 62 datasets.[17,18] HIDR is designed to support disaggregated monitoring rather than to serve as a complete cancer registry or care-pathway database.[18,19] Its content can therefore be used both to identify measurable prevention inequalities and to make gaps in current global surveillance explicit."
+        "The WHO Health Inequality Data Repository (HIDR) is designed for disaggregated monitoring rather than as a cancer registry or care-pathway database.[17,18] The 2025 update, released with Health Equity Assessment Toolkit version 7 in March 2026, contains more than 13 million data points across over 2400 indicators, 22 inequality dimensions and 62 datasets.[17,19] This breadth permits a direct assessment of which prevention inequalities can be measured and where the pathway remains unobserved."
     ),
     (
-        "Relevant data are distributed across systems beyond HIDR. WHO GHO and GHE, GBD, second-hand-smoke and tobacco-surveillance systems, CanScreen5, screening trials, CONCORD, subtype estimates and radon-risk estimates each cover different parts of the pathway.[20-31] Individual mechanisms relevant to women, including never-smoker lung cancer and hormonal pathways, require clinical and molecular data that are beyond this ecological design.[32,33] We therefore conducted an HIDR-centred cross-national study with two linked aims. First, we audited whether selected exposure, burden, care-pathway and socioeconomic outcome components were suitable for comparable country-level analysis within a predefined source frame. Second, we quantified income-group inequalities in the exposures that were measurable. To ensure that the resulting dataset retained an epidemiologically coherent disease anchor, we examined the association between an available historical female smoking proxy and explicitly age-standardised female lung-cancer incidence. This model was used as a validation analysis, not as an estimate of causal effects or of unmeasured environmental exposure."
+        "Relevant data are spread across systems beyond HIDR. WHO GHO and GHE, GBD, tobacco-surveillance systems, CanScreen5, screening trials, CONCORD, subtype estimates and radon-risk estimates each cover different parts of the pathway.[20-31] Clinical and molecular data are required to study mechanisms such as never-smoker lung cancer and hormonal susceptibility and were outside this ecological analysis.[32,33] We audited the suitability of selected exposure, burden, care-pathway and socioeconomic outcome indicators for comparable country-level analysis, then quantified income-group inequalities in the exposures that met the criteria. An explicitly age-standardised incidence model using an available historical female smoking proxy served as an epidemiological data-coherence check, not as an estimate of causal effects or unmeasured environmental exposure."
     ),
 ]
 
@@ -1563,7 +1573,7 @@ METHOD_SECTIONS = [
             "Components were classified as adequate for this analysis, available with limitations, source located but not sufficiently harmonised or integrated, no compatible global indicator identified, or not applicable. Adequacy required at least 80% country coverage for the relevant analytic variable, a comparable definition and unit, machine-readability, and the female or sex dimension where required. The limited category captured lower coverage or important deficiencies in subgroup, time, uncertainty or standardisation information. Full operational criteria and item-level evidence notes are reported in Supplementary Table S1."
         ),
         (
-            "Shen Wang and Jing Zhou independently coded all 18 components across the 10 audit dimensions using the predefined categories. After both coding rounds were complete, coder-specific records were archived on 13 July 2026 and compared cell by cell. Agreement was 180/180 cells (100%), with Cohen's kappa of 1.000; no item required adjudication by Sha Xiao. Supplementary Table S3 reports the two codes, final classification and agreement for every cell. Two AI-assisted read-only checks also reproduced the final classifications, but these secondary quality-control checks were not included in the inter-rater statistic."
+            "Shen Wang and Jing Zhou independently coded all 18 components across the 10 audit dimensions using the predefined categories. After both rounds were complete, the coder-specific records were archived on 13 July 2026 and compared cell by cell. Agreement was 180/180 cells (100%), with Cohen's kappa of 1.000; no item required adjudication by Sha Xiao. Supplementary Table S3 reports both sets of codes, the final classification and agreement for every cell."
         ),
     ]),
     ("Primary indicators and derived measures", [
@@ -1592,6 +1602,11 @@ METHOD_SECTIONS = [
         ),
         (
             "As an estimate-quality check, we compared residuals from analogous incidence and WHO mortality models among common countries. Mortality-based results were not promoted to primary evidence because age standardisation was not explicit in the source label. Analyses were complete case for the variables in each model. Python 3.12, pandas, NumPy, SciPy and Matplotlib were used. Reporting was informed by STROBE, SAGER and GATHER guidance.[39-41] Reproduction code and cleaned aggregate data are available in the public repository."
+        ),
+    ]),
+    ("Use of generative AI tools", [
+        (
+            "OpenAI Codex assisted with code drafting, consistency checks, figure assembly and English-language editing. The authors executed and reviewed all code, verified the numerical outputs and indicator classifications against the source data, and approved the final text. The tool did not generate study data or scientific images; all figures were produced programmatically from the analysed data."
         ),
     ]),
 ]
@@ -1644,36 +1659,36 @@ RESULT_SECTIONS = [
 
 DISCUSSION = [
     (
-        "Global women's lung-cancer surveillance showed a practical asymmetry. Within the prespecified HIDR-centred source frame, current female smoking, clean-fuel access, ambient PM2.5 and age-standardised incidence could be assembled for 163 countries and territories. Comparable information became progressively thinner across second-hand and long-latency exposures, screening, stage, treatment, survival and socioeconomic outcomes. Relevant data often exist locally, but remain dispersed across surveys, registries and programme systems, use different definitions or disaggregations, or cannot yet be linked into a global inequality-monitoring frame."
+        "The usable data were concentrated at the exposure end of the pathway. Current female smoking, clean-fuel access, ambient PM2.5 and age-standardised incidence could be combined for 163 countries and territories, whereas comparable information was much thinner for second-hand and other long-latency exposures, screening, stage, treatment, survival and socioeconomic outcomes. Such data often exist in surveys, registries or programme systems, but inconsistent definitions, subgroup structures and formats prevent their integration into a common inequality analysis."
     ),
     (
-        "Recent GBD analyses addressed attributable lung-cancer burden.[14-16] Zhang and colleagues quantified exposure, burden trends and transnational inequalities using age-standardised summary exposure values, concentration indices and slope indices.[15] Our question was which parts of the pathway can be observed with compatible country-level indicators, and whether missingness was socially patterned. Attributable-burden models estimate the consequences of specified risks; an availability audit identifies where routine global surveillance cannot test equity across prevention and care."
+        "This question differs from burden attribution. Recent GBD analyses, including the study by Zhang and colleagues, estimated exposure-related burden trends and transnational inequalities using age-standardised summary exposure values, concentration indices and slope indices.[14-16] We examined whether compatible country-level indicators existed across the pathway and whether their absence followed social patterning. The two approaches are complementary: attributable-burden models quantify the consequences of specified risks, while an availability audit identifies where prevention and care inequalities cannot yet be compared."
     ),
     (
-        "The exposure inequalities were large but not uniform. Active female smoking was higher in high-income countries, consistent with the historical diffusion and later decline of women's tobacco epidemics.[4-8] Clean-fuel deficit displayed the opposite gradient and almost complete separation between low- and high-income groups. Ambient PM2.5 was also higher in low-income countries, although intermediate groups did not follow a simple monotonic pattern. These contrasts show why a single composite multiple-exposure score would be difficult to interpret: the indicators represent different processes, time horizons and policy levers. Reporting effect sizes and raw distributions preserves those differences."
+        "The measurable exposures followed different income gradients. Female smoking was higher in high-income countries, consistent with the historical diffusion and later decline of smoking epidemics among women.[4-8] Clean-fuel deficit showed the reverse pattern, with almost complete separation between low- and high-income groups. Ambient PM2.5 was also higher in low-income countries, but the intermediate groups were not ordered monotonically. Combining these measures into one score would obscure differences in mechanism, timing and policy response; separate effect estimates and country distributions are more informative."
     ),
     (
-        "Clean-fuel access is particularly informative as an equity indicator. Its close relationships with SDI, HDI, urbanisation and rural disadvantage locate it within structural and household-energy conditions, not as an isolated biological exposure. The smaller median urban-rural gap in low-income countries should not be read as greater fairness because low access in both groups can compress the difference. For policy, universal deprivation and unequal distribution are separate problems. At the same time, clean-fuel deficit is not an individual household-air-pollution dose, and its absence from the incidence residual model does not invalidate its value for prevention surveillance."
+        "Clean-fuel access captured a clear structural inequality. Its strong associations with SDI, HDI, urbanisation and rural disadvantage place it within household-energy and development conditions rather than as an isolated biological exposure. A small urban-rural difference can coexist with very low access in both groups, explaining why the median gap was smaller in low-income than lower-middle-income countries. Universal deprivation and unequal distribution therefore require separate interpretation. Clean-fuel deficit remains a population proxy, not an individual household-air-pollution dose, and its weak residual-model association does not remove its value as a prevention indicator."
     ),
     (
-        "The age-standardised incidence analysis provided an expected epidemiological anchor. The available 2000-2010 smoking proxy was associated with current female lung-cancer incidence after structural adjustment, while current smoking produced a smaller coefficient. This pattern is consistent with latency and cohort history, but the proxy begins too recently to capture the full 20-40-year exposure period relevant to many 2021 cases. The model should therefore be understood as partially historical smoking adjustment. Its residual is not an estimate of second-hand smoke, air pollution, hormonal susceptibility, diagnostic intensity or any other unmeasured cause."
+        "The incidence model supplied an epidemiological coherence check. The 2000-2010 smoking proxy was associated with 2021 age-standardised incidence after structural adjustment, and its coefficient exceeded that for current smoking. Latency and cohort history are plausible explanations, although the series begins too recently to cover the full 20-40-year exposure period relevant to many cases. It provides only partial historical smoking adjustment. The residual cannot be assigned to second-hand smoke, air pollution, hormonal susceptibility, diagnostic intensity or another unmeasured cause."
     ),
     (
-        "The environmental models reinforce that caution. A PM2.5 association appeared in the non-high-income subset but lost precision after WHO-region adjustment, whereas no uniform global residual association was observed. Ecological collinearity, regional context, modelled exposure surfaces, short exposure histories and outcome data quality can all produce this pattern. The finding is better used to motivate longer historical exposure series and multilevel data than to attribute excess female lung-cancer incidence to national PM2.5."
+        "The exploratory environmental results were context-sensitive. PM2.5 was associated with the incidence residual among non-high-income countries before WHO-region adjustment, but the interval crossed zero after adjustment, and no global association was evident. Regional confounding, ecological collinearity, modelled exposure surfaces, short exposure histories and variation in outcome data quality could each contribute. Longer exposure series and multilevel data are needed before national PM2.5 can be linked to excess incidence."
     ),
     (
-        "The pathway audit also refines the language of data gaps. CanScreen5 is a global, increasingly harmonised screening repository, but its established quantitative coverage has focused on breast, cervical and colorectal programmes, with lung-screening initiatives still emerging.[25,26] CONCORD provides high-quality survival comparisons, but its 71-country registry coverage and lack of globally harmonised socioeconomic linkage do not constitute universal survival-equity surveillance.[29] Likewise, global subtype estimates and GBD radon or occupational-risk estimates are valuable without filling stage, treatment or within-country social gradients.[14,30,31] Classifying these resources as located or limited is more accurate than labelling the domains absent."
+        "The audit also distinguishes data absence from lack of integration. CanScreen5 is an increasingly harmonised global repository, but its established quantitative coverage centres on breast, cervical and colorectal screening, while lung-screening initiatives remain emergent.[25,26] CONCORD offers high-quality survival comparisons from registries in 71 countries, but does not provide universal coverage or globally harmonised socioeconomic linkage.[29] Global subtype estimates and GBD radon or occupational-risk estimates are similarly valuable without filling gaps in stage, treatment or within-country social gradients.[14,30,31] These resources are better described as located or limited than as absent."
     ),
     (
-        "Several limitations remain. The source identification was structured but not a systematic review of every national registry or programme. Although two investigators independently coded the audit with complete agreement and the coder-specific records are now archived, the records were consolidated into the analytic archive after completion rather than time-stamped prospectively during source identification. Several inputs were modelled estimates, and harmonised uncertainty draws were unavailable across data streams. Complete-case comparisons can underrepresent countries with lower development. Country observations were spatially correlated, although the smoking coefficient remained positive with Conley-type uncertainty. Finally, the study is ecological and cannot infer individual exposure, susceptibility, access to care or causal mechanisms."
+        "The study has several limitations. Source identification was structured but did not systematically review every national registry or programme. Two investigators coded the audit independently with complete agreement, although their records were consolidated into the archive after coding rather than time-stamped prospectively during source identification. Several inputs were modelled estimates, and harmonised uncertainty draws were unavailable across data streams. Complete-case analysis underrepresented some lower-development settings. Country observations were spatially correlated, although the smoking estimate remained positive with Conley-type covariance. The ecological design cannot resolve individual exposure, susceptibility, care access or causal mechanisms."
     ),
     (
-        "A useful next step is a minimum global women's lung-cancer equity indicator set that connects exposure and care. It should retain age-standardised active smoking, clean cooking and ambient PM2.5; add harmonised female second-hand smoke, occupational and radon indicators; and link LDCT eligibility and uptake, stage, histology, treatment and survival to wealth, education and residence. Versioned metadata should record whether estimates are observed or modelled, the standard population, uncertainty, observation year and subgroup denominator. The 2025 HIDR update and HEAT version 7 provide a strong platform for exposure-side inequality monitoring, but cancer registries, screening programmes and survival systems must be interoperable if the full pathway is to become visible."
+        "A minimum global indicator set could connect exposure surveillance with cancer care. Alongside age-standardised active smoking, clean cooking and ambient PM2.5, it would need harmonised female second-hand smoke, occupational and radon indicators, plus LDCT eligibility and uptake, stage, histology, treatment and survival linked to wealth, education and residence. Versioned metadata should identify the observation year, subgroup denominator, standard population, uncertainty and whether each estimate is observed or modelled. HIDR and HEAT already support exposure-side comparisons; interoperable registry, screening and survival systems are needed to extend them across the pathway."
     ),
 ]
 
 CONCLUSION = (
-    "Within an HIDR-centred global source frame, selected exposure and incidence indicators support broad country-level monitoring of women's lung-cancer prevention, but care-pathway and socioeconomic outcome surveillance remains fragmented. Missingness was patterned by income and development, and measurable exposures followed opposing inequality gradients. Historical female smoking was associated with age-standardised incidence, but neither that association nor exploratory environmental residuals establish causality. The priority is therefore twofold: act on the large exposure inequalities already measurable and build interoperable, disaggregated data for screening, diagnosis, treatment and survival."
+    "Selected exposure and incidence indicators support broad country-level comparison of women's lung-cancer prevention, but care-pathway and socioeconomic outcome data remain fragmented. Missingness varied with income and development, while smoking, clean-fuel access and ambient PM2.5 followed distinct inequality gradients. Historical female smoking was associated with age-standardised incidence, but this association and the environmental residual analyses are not causal estimates. Public-health action can address the exposure inequalities already measurable while data systems are strengthened for screening, diagnosis, treatment and survival."
 )
 
 
@@ -1694,9 +1709,9 @@ REFERENCES = [
     "GBD 2021 Risk Factors Collaborators. Global burden and strength of evidence for 88 risk factors in 204 countries and 811 subnational locations, 1990-2021: a systematic analysis for the Global Burden of Disease Study 2021. Lancet. 2024;403:2162-2203. doi:10.1016/S0140-6736(24)00933-4.",
     "Zhang Y, Wang W, Dai K, et al. Global lung cancer burden attributable to air fine particulate matter and tobacco smoke exposure: spatiotemporal patterns, sociodemographic characteristics, and transnational inequalities from 1990 to 2021. BMC Public Health. 2025;25:1260. doi:10.1186/s12889-025-22450-8.",
     "Deng Y, Li Z, Zhang P, et al. Global, regional and national burden of lung cancer attributable to PM2.5 air pollution: trends from 1990 to 2021 with projections to 2045. J Environ Manage. 2025;390:126216. doi:10.1016/j.jenvman.2025.126216.",
-    "World Health Organization. WHO releases updated Health Inequality Data Repository and Health Equity Assessment Toolkit. Geneva: WHO; 2026. https://www.who.int/news/item/03-03-2026-who-releases-updated-health-inequality-data-repository-and-health-equity-assessment-toolkit. Accessed 13 Jul 2026.",
     "World Health Organization. Health Inequality Monitor. Geneva: WHO; 2026. https://www.who.int/data/inequality-monitor. Accessed 13 Jul 2026.",
     "World Health Organization. Handbook on health inequality monitoring: with a special focus on low- and middle-income countries. Geneva: WHO; 2013. https://www.who.int/publications/i/item/9789241548632.",
+    "World Health Organization. WHO releases updated Health Inequality Data Repository and Health Equity Assessment Toolkit. Geneva: WHO; 2026. https://www.who.int/news/item/03-03-2026-who-releases-updated-health-inequality-data-repository-and-health-equity-assessment-toolkit. Accessed 13 Jul 2026.",
     "World Health Organization. Global Health Observatory. Geneva: WHO; 2026. https://www.who.int/data/gho. Accessed 13 Jul 2026.",
     "World Health Organization. Global Health Estimates: life expectancy and leading causes of death and disability. Geneva: WHO; 2024. https://www.who.int/data/gho/data/themes/mortality-and-global-health-estimates. Accessed 13 Jul 2026.",
     "GBD 2021 Diseases and Injuries Collaborators. Global incidence, prevalence, years lived with disability, disability-adjusted life-years, and healthy life expectancy for 371 diseases and injuries in 204 countries and territories and 811 subnational locations, 1990-2021: a systematic analysis for the Global Burden of Disease Study 2021. Lancet. 2024;403:2133-2161. doi:10.1016/S0140-6736(24)00757-8.",
@@ -1770,7 +1785,7 @@ FIGURE_LEGENDS = [
 
 
 SUPPLEMENTARY_FIGURE_LEGENDS = [
-    "Supplementary Figure S1. Source-identification and indicator-audit workflow. Shen Wang and Jing Zhou independently coded the predefined audit cells; human agreement was quantified before finalisation. Two AI-assisted read-only checks were used only as secondary quality control and were excluded from Cohen's kappa. The workflow distinguishes formal source-frame coding from targeted verification of relevant cancer, screening, survival and tobacco resources.",
+    "Supplementary Figure S1. Source-identification and indicator-audit workflow. Shen Wang and Jing Zhou independently coded the predefined audit cells, and agreement was quantified before the classifications were finalised. The workflow distinguishes formal source-frame coding from targeted verification of relevant cancer, screening, survival and tobacco resources.",
     "Supplementary Figure S2. Coverage by income group and WHO region. Cells report the percentage of countries or territories with each primary indicator and the complete four-indicator overlap.",
     "Supplementary Figure S3. Overall audit classifications by domain. Stacked bars summarise the adjudicated overall classification of components shown individually in Figure 2 and Supplementary Table S3.",
     "Supplementary Figure S4. Exposure and age-standardised incidence distributions by WHO region. Boxes show medians and interquartile ranges, whiskers extend to 1.5 times the interquartile range, and points represent countries or territories.",
@@ -1793,7 +1808,7 @@ def manuscript_markdown(table1: list[list[str]], table2: list[list[str]]) -> str
     parts = [
         f"# {TITLE}",
         "## Authors\n" + ", ".join(AUTHORS) + "\n\n" + "\n\n".join(AFFILIATIONS + CORRESPONDING) +
-        "\n\nAdditional author details: Jing Zhou, email hy0208035@muhn.edu.cn, ORCID 0000-0003-4076-4083; Pengyu Li, email leepy8@163.com.",
+        "\n\nAdditional author contact details: Jing Zhou, hy0208035@muhn.edu.cn, ORCID 0000-0003-4076-4083; Pengyu Li, leepy8@163.com.",
         "## Abstract\n" + "\n\n".join(f"**{k}:** {v}" for k, v in ABSTRACT.items()),
         f"**Keywords:** {KEYWORDS}",
         "## Background\n" + "\n\n".join(BACKGROUND),
@@ -1813,15 +1828,15 @@ def manuscript_markdown(table1: list[list[str]], table2: list[list[str]]) -> str
         "### Consent for publication\nNot applicable.",
         "### Availability of data and materials\nThe cleaned aggregate country-level dataset, indicator dictionaries, independent-coder audit records, analysis tables and reproduction scripts are available at https://github.com/ammkkr/women-lung-cancer-equity-surveillance. The repository contains no individual-level or identifiable data. Source datasets remain subject to the terms of their original providers; provider-specific access dates and reuse conditions are documented in the repository data manifest.",
         "### Competing interests\nThe authors declare that they have no competing interests.",
-        "### Funding\nThis work was supported by the Hainan Province Science and Technology Special Fund (ZDYF2025SHFZ046). Shen Wang received doctoral training support from the China Scholarship Council. The funders had no role in study design, data collection, data analysis, data interpretation, manuscript preparation or the decision to submit.",
+        "### Funding\nThis work was supported by the Hainan Province Science and Technology Special Fund (ZDYF2025SHFZ046). Shen Wang received doctoral scholarship support from the China Scholarship Council. The funders had no role in study design, data collection, analysis, interpretation, manuscript preparation or the decision to submit.",
         "### Authors' contributions\nSW conceived the study, extracted and harmonised data, conducted the statistical analyses, produced the figures and tables, independently coded the indicator audit, interpreted the findings and drafted the manuscript. JZ contributed to data analysis, independently coded the indicator audit and revised the manuscript. ZJ contributed to data extraction, source verification and data checking. PL contributed to writing, interpretation and critical revision. SX supervised the study, was available to adjudicate audit disagreements, contributed to design and analytical planning and critically revised the manuscript. No audit disagreement required adjudication. All authors read and approved the final manuscript.",
-        "### Acknowledgements\nThe authors thank the World Health Organization and other data providers for making the aggregate data and metadata available. Shen Wang acknowledges doctoral training support from the China Scholarship Council. Generative AI tools assisted code development, consistency checking, figure assembly and language editing. Two AI-assisted read-only audit passes were used as secondary quality-control checks. All indicator classifications, analyses, interpretations and manuscript text were independently reviewed and approved by the authors, who take full responsibility for the work.",
+        "### Acknowledgements\nThe authors thank the World Health Organization and the other data providers whose aggregate data and metadata made this study possible. Shen Wang acknowledges doctoral scholarship support from the China Scholarship Council.",
         "## References\n" + "\n".join(f"{i}. {r}" for i, r in enumerate(REFERENCES, 1)),
         "## Tables",
         "### Table 1. Analytic indicators and operational characteristics\n" + md_table(table1) + "\n\n*Notes:* Coverage denominators are the 197-country and territory analytic frame unless otherwise stated. PM2.5 denotes ambient fine particulate matter; YLL, years of life lost; DALY, disability-adjusted life year.",
         "### Table 2. Quantitative evidence supporting the surveillance interpretation\n" + md_table(table2) + "\n\n*Notes:* Confidence intervals for median differences and Cliff's delta were obtained by non-parametric bootstrap. Regression confidence intervals use HC3 standard errors unless stated otherwise. Results are ecological and descriptive.",
         "## Figure legends\n" + "\n\n".join(FIGURE_LEGENDS),
-        "## Additional file\nAdditional file 1. **File name:** Additional_file_1_supplementary_methods_figures_tables.docx. **Format:** DOCX. **Title:** Supplementary methods, figures and tables. **Description:** Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.",
+        "## Additional file\nAdditional file 1. **File name:** Additional_file_1.docx. **Format:** DOCX. **Title:** Supplementary methods, figures and tables. **Description:** Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.",
     ])
     return "\n\n".join(parts) + "\n"
 
@@ -1848,9 +1863,33 @@ def set_doc_style(doc: Document, line_numbers: bool = True) -> None:
             sect_pr = section._sectPr
             ln = sect_pr.find(qn("w:lnNumType"))
             if ln is None:
-                ln = OxmlElement("w:lnNumType"); sect_pr.append(ln)
+                ln = OxmlElement("w:lnNumType")
+            else:
+                sect_pr.remove(ln)
             ln.set(qn("w:countBy"), "1"); ln.set(qn("w:restart"), "continuous")
+            following = {
+                qn("w:pgNumType"), qn("w:cols"), qn("w:formProt"), qn("w:vAlign"),
+                qn("w:noEndnote"), qn("w:titlePg"), qn("w:textDirection"), qn("w:bidi"),
+                qn("w:rtlGutter"), qn("w:docGrid"), qn("w:sectPrChange"),
+            }
+            insert_at = next((i for i, child in enumerate(sect_pr) if child.tag in following), len(sect_pr))
+            sect_pr.insert(insert_at, ln)
         add_page_number(section)
+    zoom = doc.settings.element.find(qn("w:zoom"))
+    if zoom is None:
+        zoom = OxmlElement("w:zoom")
+        doc.settings.element.insert(0, zoom)
+    zoom.set(qn("w:percent"), "100")
+
+
+def set_core_properties(doc: Document, title: str, subject: str) -> None:
+    props = doc.core_properties
+    props.author = "Shen Wang et al."
+    props.last_modified_by = "Shen Wang"
+    props.title = title
+    props.subject = subject
+    props.keywords = "lung cancer; women; health inequalities; public health surveillance"
+    props.comments = ""
 
 
 def add_para(doc: Document, text: str = "", bold: bool = False, size: int | None = None, align=None, spacing: float = 2) -> None:
@@ -1860,6 +1899,27 @@ def add_para(doc: Document, text: str = "", bold: bool = False, size: int | None
     if align is not None: p.alignment = align
     r = p.add_run(text); r.bold = bold; r.font.name = "Times New Roman"
     if size: r.font.size = Pt(size)
+
+
+def add_author_line(doc: Document) -> None:
+    paragraph = doc.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.paragraph_format.line_spacing = 2
+    paragraph.paragraph_format.space_after = Pt(6)
+    for index, item in enumerate(AUTHORS):
+        match = re.match(r"^(.*?)(\d+)(\*)?$", item)
+        if not match:
+            paragraph.add_run(item)
+        else:
+            name, affiliation, corresponding = match.groups()
+            paragraph.add_run(name)
+            number_run = paragraph.add_run(affiliation)
+            number_run.font.superscript = True
+            if corresponding:
+                star_run = paragraph.add_run(corresponding)
+                star_run.font.superscript = True
+        if index < len(AUTHORS) - 1:
+            paragraph.add_run(", ")
 
 
 def add_heading(doc: Document, text: str, level: int = 1) -> None:
@@ -1872,6 +1932,13 @@ def add_word_table(doc: Document, rows: list[list[str]], font_size: float = 7.5,
     table = doc.add_table(rows=len(rows), cols=len(rows[0]))
     table.style = "Table Grid"; table.alignment = WD_TABLE_ALIGNMENT.CENTER
     for i, row in enumerate(rows):
+        tr_pr = table.rows[i]._tr.get_or_add_trPr()
+        cant_split = OxmlElement("w:cantSplit")
+        tr_pr.append(cant_split)
+        if i == 0:
+            repeat_header = OxmlElement("w:tblHeader")
+            repeat_header.set(qn("w:val"), "true")
+            tr_pr.append(repeat_header)
         for j, value in enumerate(row):
             cell = table.cell(i, j); cell.text = ""
             p = cell.paragraphs[0]; p.paragraph_format.line_spacing = 1.0; p.paragraph_format.space_after = Pt(0)
@@ -1883,13 +1950,14 @@ def add_word_table(doc: Document, rows: list[list[str]], font_size: float = 7.5,
         doc.add_paragraph()
 
 
-def build_main_docx(table1: list[list[str]], table2: list[list[str]], main_figures: list[Path]) -> Document:
+def build_main_docx(table1: list[list[str]], table2: list[list[str]], main_figures: list[Path], include_figure_previews: bool = False) -> Document:
     doc = Document(); set_doc_style(doc, line_numbers=True)
+    set_core_properties(doc, TITLE, "Research article prepared for BMC Public Health")
     add_para(doc, TITLE, bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER)
-    add_para(doc, ", ".join(AUTHORS), align=WD_ALIGN_PARAGRAPH.CENTER)
+    add_author_line(doc)
     for line in AFFILIATIONS: add_para(doc, line)
     for line in CORRESPONDING: add_para(doc, line)
-    add_para(doc, "Additional author details: Jing Zhou, email hy0208035@muhn.edu.cn, ORCID 0000-0003-4076-4083; Pengyu Li, email leepy8@163.com.")
+    add_para(doc, "Additional author contact details: Jing Zhou, hy0208035@muhn.edu.cn, ORCID 0000-0003-4076-4083; Pengyu Li, leepy8@163.com.")
     add_heading(doc, "Abstract")
     for k, v in ABSTRACT.items():
         p = doc.add_paragraph(); p.paragraph_format.line_spacing = 2; p.paragraph_format.space_after = Pt(6); p.add_run(k + ": ").bold = True; p.add_run(v)
@@ -1916,9 +1984,9 @@ def build_main_docx(table1: list[list[str]], table2: list[list[str]], main_figur
         ("Consent for publication", "Not applicable."),
         ("Availability of data and materials", "The cleaned aggregate country-level dataset, indicator dictionaries, independent-coder audit records, analysis tables and reproduction scripts are available at https://github.com/ammkkr/women-lung-cancer-equity-surveillance. The repository contains no individual-level or identifiable data. Source datasets remain subject to the terms of their original providers; provider-specific access dates and reuse conditions are documented in the repository data manifest."),
         ("Competing interests", "The authors declare that they have no competing interests."),
-        ("Funding", "This work was supported by the Hainan Province Science and Technology Special Fund (ZDYF2025SHFZ046). Shen Wang received doctoral training support from the China Scholarship Council. The funders had no role in study design, data collection, data analysis, data interpretation, manuscript preparation or the decision to submit."),
+        ("Funding", "This work was supported by the Hainan Province Science and Technology Special Fund (ZDYF2025SHFZ046). Shen Wang received doctoral scholarship support from the China Scholarship Council. The funders had no role in study design, data collection, analysis, interpretation, manuscript preparation or the decision to submit."),
         ("Authors' contributions", "SW conceived the study, extracted and harmonised data, conducted the statistical analyses, produced the figures and tables, independently coded the indicator audit, interpreted the findings and drafted the manuscript. JZ contributed to data analysis, independently coded the indicator audit and revised the manuscript. ZJ contributed to data extraction, source verification and data checking. PL contributed to writing, interpretation and critical revision. SX supervised the study, was available to adjudicate audit disagreements, contributed to design and analytical planning and critically revised the manuscript. No audit disagreement required adjudication. All authors read and approved the final manuscript."),
-        ("Acknowledgements", "The authors thank the World Health Organization and other data providers for making the aggregate data and metadata available. Shen Wang acknowledges doctoral training support from the China Scholarship Council. Generative AI tools assisted code development, consistency checking, figure assembly and language editing. Two AI-assisted read-only audit passes were used as secondary quality-control checks. All indicator classifications, analyses, interpretations and manuscript text were independently reviewed and approved by the authors, who take full responsibility for the work."),
+        ("Acknowledgements", "The authors thank the World Health Organization and the other data providers whose aggregate data and metadata made this study possible. Shen Wang acknowledges doctoral scholarship support from the China Scholarship Council."),
     ]
     for h, p in declarations: add_heading(doc, h, 2); add_para(doc, p)
     add_heading(doc, "References")
@@ -1930,12 +1998,13 @@ def build_main_docx(table1: list[list[str]], table2: list[list[str]], main_figur
     add_word_table(doc, table2, 7, "Confidence intervals for median differences and Cliff's delta were obtained by non-parametric bootstrap. Regression confidence intervals use HC3 standard errors unless stated otherwise. Results are ecological and descriptive.")
     add_heading(doc, "Figure legends")
     for legend in FIGURE_LEGENDS: add_para(doc, legend, spacing=1.0)
-    add_heading(doc, "Figure previews")
-    for i, fig in enumerate(main_figures, 1):
-        add_para(doc, f"Figure {i}.", bold=True, spacing=1.0)
-        doc.add_picture(str(fig), width=Inches(6.5))
+    if include_figure_previews:
+        add_heading(doc, "Figure previews")
+        for i, fig in enumerate(main_figures, 1):
+            add_para(doc, f"Figure {i}.", bold=True, spacing=1.0)
+            doc.add_picture(str(fig), width=Inches(6.5))
     add_heading(doc, "Additional file")
-    add_para(doc, "Additional file 1. File name: Additional_file_1_supplementary_methods_figures_tables.docx. Format: DOCX. Title: Supplementary methods, figures and tables. Description: Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.")
+    add_para(doc, "Additional file 1. File name: Additional_file_1.docx. Format: DOCX. Title: Supplementary methods, figures and tables. Description: Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.")
     return doc
 
 
@@ -1952,6 +2021,39 @@ def dataframe_rows(df: pd.DataFrame, columns: list[str], labels: list[str] | Non
     return rows
 
 
+DISPLAY_VALUE_LABELS = {
+    "z_exposure": "Historical female smoking (z score)",
+    "z_log_GDP": "Log GDP per capita (z score)",
+    "z_urbanisation": "Urbanisation (z score)",
+    "z_clean_fuel_deficit": "Clean-fuel deficit (z score)",
+    "z_PM25_2019": "Ambient PM2.5 (z score)",
+    "z_pm25": "Ambient PM2.5 (z score)",
+    "pm25_x_high_income": "PM2.5 by high-income interaction",
+    "WHO_region_Americas": "WHO region: Americas",
+    "WHO_region_Eastern Mediterranean": "WHO region: Eastern Mediterranean",
+    "WHO_region_European": "WHO region: European",
+    "WHO_region_South-East Asia": "WHO region: South-East Asia",
+    "WHO_region_Western Pacific": "WHO region: Western Pacific",
+    "female_smoking_2000": "Female smoking, 2000",
+    "female_smoking_2005": "Female smoking, 2005",
+    "female_smoking_2010": "Female smoking, 2010",
+    "historical_female_smoking": "Mean female smoking, 2000-2010",
+    "female_smoking_2022": "Female smoking, 2022",
+}
+
+
+def display_frame(df: pd.DataFrame, extra_labels: dict[str, str] | None = None) -> pd.DataFrame:
+    labels = DISPLAY_VALUE_LABELS | (extra_labels or {})
+    out = df.copy()
+    for column in out.columns:
+        out[column] = out[column].map(
+            lambda value: "Yes" if value is True or isinstance(value, np.bool_) and bool(value)
+            else "No" if value is False or isinstance(value, np.bool_) and not bool(value)
+            else labels.get(value, value)
+        )
+    return out
+
+
 def supplementary_tables(country: pd.DataFrame, effects: pd.DataFrame, coef: pd.DataFrame, fit: pd.DataFrame, window: pd.DataFrame,
                          robust: pd.DataFrame, spatial_diag: pd.DataFrame, env: pd.DataFrame, outcome_summary: pd.DataFrame,
                          corr: pd.DataFrame, inc_miss: pd.DataFrame, reg_miss: pd.DataFrame) -> list[tuple[str, list[list[str]], str]]:
@@ -1965,7 +2067,8 @@ def supplementary_tables(country: pd.DataFrame, effects: pd.DataFrame, coef: pd.
     ]
     src = source_protocol_table()
     audit = independent_audit_record()
-    audit_cols = ["domain", "component", "audit_dimension", "Shen_Wang_code", "Jing_Zhou_code", "exact_agreement", "final_code", "final_label", "adjudication_change_required", "evidence_note"]
+    audit_cols = ["domain", "component", "audit_dimension", "Shen_Wang_code", "Jing_Zhou_code", "exact_agreement", "final_label", "adjudication_change_required", "evidence_note"]
+    audit = display_frame(audit, {"adequate": "A", "limited": "L", "located": "LH", "no_global": "NG", "na": "NA"})
     frame = country[["iso3", "country", "WHO_region", "income_group", "complete_analytic_indicator_frame", "incidence_model_complete", "analytic_missingness_pattern"] + [c for _, c, _ in PRIMARY_INDICATORS]].copy()
     miss = pd.concat([inc_miss.assign(stratifier="Income group").rename(columns={"income_group": "group"}), reg_miss.assign(stratifier="WHO region").rename(columns={"WHO_region": "group"})], ignore_index=True)
     desc = pd.concat([descriptive_table(country, "income_group").assign(stratifier="Income group"), descriptive_table(country, "WHO_region").assign(stratifier="WHO region")], ignore_index=True)
@@ -1973,33 +2076,43 @@ def supplementary_tables(country: pd.DataFrame, effects: pd.DataFrame, coef: pd.
         coef.assign(section="Coefficients").rename(columns={"model": "model_or_analysis"}),
         fit.assign(section="Model fit").rename(columns={"model": "model_or_analysis"}),
     ], ignore_index=True, sort=False)
-    infl = pd.DataFrame()
+    frame = display_frame(frame)
+    src = display_frame(src)
+    miss = display_frame(miss)
+    desc = display_frame(desc)
+    effects = display_frame(effects)
+    model = display_frame(model)
+    window = display_frame(window)
+    robust = display_frame(robust)
+    spatial_diag = display_frame(spatial_diag)
+    env = display_frame(env)
+    outcome_summary = display_frame(outcome_summary)
     return [
         ("Supplementary Table S1. Audit classifications and operational criteria", criteria, "Thresholds were prespecified for this analysis and describe suitability for the stated analytic role."),
-        ("Supplementary Table S2. Source-identification protocol and targeted verification", dataframe_rows(src, src.columns.tolist()), "Searches were structured but did not constitute a systematic review of every national data source."),
-        ("Supplementary Table S3. Item-level indicator-availability audit and independent-coder agreement", dataframe_rows(audit, audit_cols, decimals=3), "Shen Wang and Jing Zhou independently coded 18 components across 10 dimensions. Agreement was 180/180 cells (100%) and Cohen's kappa was 1.000. Coder-specific records were archived on 13 July 2026 after completion; no adjudication change was required. Two AI-assisted read-only checks reproduced the final codes but were excluded from the human inter-rater statistic."),
-        ("Supplementary Table S4. Country and territory analytic-frame membership", dataframe_rows(frame, frame.columns.tolist(), decimals=3), "Complete status requires current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence."),
-        ("Supplementary Table S5. Primary-indicator coverage by income group and WHO region", dataframe_rows(miss, ["stratifier", "group", "n_total", "n_complete", "complete_percent"] + [f"coverage_{c}" for _, c, _ in PRIMARY_INDICATORS], decimals=1), "Percentages use the number of countries or territories in each stratum as the denominator."),
-        ("Supplementary Table S6. Descriptive exposure and incidence distributions", dataframe_rows(desc, ["stratifier", "group", "indicator", "n", "median", "Q1", "Q3", "minimum", "maximum"], decimals=2), "Summaries are unweighted country-level distributions."),
-        ("Supplementary Table S7. Income-group exposure inequality effect sizes", dataframe_rows(effects, effects.columns.tolist(), decimals=3), "Median-difference and Cliff's-delta intervals use 5000 bootstrap samples."),
-        ("Supplementary Table S8. Age-standardised incidence model coefficients and fit", dataframe_rows(model, ["section", "model_or_analysis", "term", "n", "estimate", "robust_SE_HC3", "CI_low", "CI_high", "P", "R2", "adjusted_R2", "AIC"], decimals=4), "HC3 confidence intervals are reported for coefficients; R-squared, adjusted R-squared and AIC are reported in model-fit rows."),
-        ("Supplementary Table S9. Alternative female-smoking exposure windows", dataframe_rows(window, window.columns.tolist(), decimals=4), "Each row uses the same structural adjustment set: log GDP, urbanisation and WHO region."),
-        ("Supplementary Table S10. Influence and spatial sensitivity analyses", dataframe_rows(pd.concat([robust, spatial_diag.rename(columns={"metric": "analysis"})], ignore_index=True, sort=False), ["analysis", "n", "estimate", "CI_low", "CI_high", "P"], decimals=4), "Conley-type intervals were calculated for the geocoded subset. Moran's I is reported without a confidence interval."),
-        ("Supplementary Table S11. Exploratory environmental heterogeneity models", dataframe_rows(env, env.columns.tolist(), decimals=4), "Environmental coefficients are supplementary and should not be interpreted as causal effects."),
-        ("Supplementary Table S12. Incidence-mortality residual consistency", dataframe_rows(outcome_summary, outcome_summary.columns.tolist(), decimals=4), "Both residuals were derived from models adjusted for historical smoking, log GDP, urbanisation and WHO region."),
+        ("Supplementary Table S2. Source-identification protocol and targeted verification", dataframe_rows(src, ["source", "role", "entry_points", "search_dates", "decision_rule"], ["Source", "Role in audit", "Entry points", "Search dates", "Decision rule"]), "Searches were structured but did not constitute a systematic review of every national data source."),
+        ("Supplementary Table S3. Item-level indicator-availability audit and independent-coder agreement", dataframe_rows(audit, audit_cols, ["Domain", "Component", "Audit dimension", "Shen Wang code", "Jing Zhou code", "Exact agreement", "Final classification", "Adjudication changed", "Evidence note"], decimals=3), "Codes: A, adequate for this analysis; L, available with limitations; LH, source located but not sufficiently harmonised or integrated; NG, no compatible global indicator identified; NA, not applicable. Shen Wang and Jing Zhou independently coded 18 components across 10 dimensions. Agreement was 180/180 cells (100%) and Cohen's kappa was 1.000. Coder-specific records were archived on 13 July 2026 after completion; no adjudication change was required."),
+        ("Supplementary Table S4. Country and territory analytic-frame membership", dataframe_rows(frame, ["iso3", "country", "WHO_region", "income_group", "complete_analytic_indicator_frame", "incidence_model_complete", "analytic_missingness_pattern", "female_smoking_2022", "clean_fuel_2020", "PM25_2019", "female_LC_incidence_2021"], ["ISO3", "Country or territory", "WHO region", "Income group", "Complete four-indicator frame", "Complete incidence-model data", "Missingness pattern", "Female smoking, 2022 (%)", "Clean-fuel access, 2020 (%)", "Ambient PM2.5, 2019 (micrograms/m3)", "Female lung-cancer incidence, 2021 (age-standardised rate per 100,000)"], decimals=3), "Complete status requires current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence."),
+        ("Supplementary Table S5. Primary-indicator coverage by income group and WHO region", dataframe_rows(miss, ["stratifier", "group", "n_total", "n_complete", "complete_percent"] + [f"coverage_{c}" for _, c, _ in PRIMARY_INDICATORS], ["Stratifier", "Group", "Total settings", "Complete settings", "Complete (%)", "Female smoking available (%)", "Clean-fuel access available (%)", "Ambient PM2.5 available (%)", "Female lung-cancer incidence available (%)"], decimals=1), "Percentages use the number of countries or territories in each stratum as the denominator."),
+        ("Supplementary Table S6. Descriptive exposure and incidence distributions", dataframe_rows(desc, ["stratifier", "group", "indicator", "n", "median", "Q1", "Q3", "minimum", "maximum"], ["Stratifier", "Group", "Indicator", "n", "Median", "First quartile", "Third quartile", "Minimum", "Maximum"], decimals=2), "Summaries are unweighted country-level distributions."),
+        ("Supplementary Table S7. Income-group exposure inequality effect sizes", dataframe_rows(effects, ["exposure", "contrast", "unit", "n_low_income", "n_high_income", "median_low_income", "median_high_income", "absolute_median_difference", "median_difference_95CI_low", "median_difference_95CI_high", "cliffs_delta_low_vs_high", "cliffs_delta_95CI_low", "cliffs_delta_95CI_high"], ["Exposure", "Contrast", "Unit", "Low-income n", "High-income n", "Low-income median", "High-income median", "Median difference", "95% CI lower", "95% CI upper", "Cliff's delta", "Delta 95% CI lower", "Delta 95% CI upper"], decimals=3), "Median-difference and Cliff's-delta intervals use 5000 bootstrap samples."),
+        ("Supplementary Table S8. Age-standardised incidence model coefficients and fit", dataframe_rows(model, ["section", "model_or_analysis", "term", "n", "estimate", "robust_SE_HC3", "CI_low", "CI_high", "P", "R2", "adjusted_R2", "AIC"], ["Section", "Model or analysis", "Term", "n", "Estimate", "Robust SE (HC3)", "95% CI lower", "95% CI upper", "P value", "R squared", "Adjusted R squared", "AIC"], decimals=4), "HC3 confidence intervals are reported for coefficients; R squared, adjusted R squared and AIC are reported in model-fit rows."),
+        ("Supplementary Table S9. Alternative female-smoking exposure windows", dataframe_rows(window, ["exposure_window", "n", "estimate", "CI_low", "CI_high", "P", "R2"], ["Exposure window", "n", "Estimate", "95% CI lower", "95% CI upper", "P value", "R squared"], decimals=4), "Each row uses the same structural adjustment set: log GDP, urbanisation and WHO region."),
+        ("Supplementary Table S10. Influence and spatial sensitivity analyses", dataframe_rows(pd.concat([robust, spatial_diag.rename(columns={"metric": "analysis"})], ignore_index=True, sort=False), ["analysis", "n", "estimate", "CI_low", "CI_high", "P"], ["Analysis", "n", "Estimate", "95% CI lower", "95% CI upper", "P value"], decimals=4), "Conley-type intervals were calculated for the geocoded subset. Moran's I is reported without a confidence interval."),
+        ("Supplementary Table S11. Exploratory environmental heterogeneity models", dataframe_rows(env, ["analysis", "term", "n", "estimate", "CI_low", "CI_high", "P", "R2"], ["Analysis", "Term", "n", "Estimate", "95% CI lower", "95% CI upper", "P value", "R squared"], decimals=4), "Environmental coefficients are supplementary and should not be interpreted as causal effects."),
+        ("Supplementary Table S12. Incidence-mortality residual consistency", dataframe_rows(outcome_summary, ["comparison", "method", "estimate", "P", "n"], ["Comparison", "Method", "Estimate", "P value", "n"], decimals=4), "Both residuals were derived from models adjusted for historical smoking, log GDP, urbanisation and WHO region."),
     ]
 
 
 def supplementary_markdown(tables: list[tuple[str, list[list[str]], str]]) -> str:
     methods = [
-        "### Scope and source identification\nThe supplement documents the structured source audit and all analyses supporting the main manuscript. Formal coding used WHO HIDR/HEAT-linked sources, GHO, GHE, GBD-linked outputs, World Bank indicators and Global Data Lab HDI. Targeted verification covered IARC/GLOBOCAN, CanScreen5, CONCORD, WHO second-hand-smoke metadata and GTSS/GATS. Shen Wang and Jing Zhou independently coded all 180 component-by-dimension cells. Their coder-specific records were archived after completion, compared without alteration and showed 100% agreement (Cohen's kappa=1.000); no adjudication change was required. Two AI-assisted read-only passes reproduced the final classifications as secondary quality control and were excluded from the human agreement statistic. The workflow and decision rules are shown in Supplementary Figure S1 and Supplementary Tables S1-S3.",
+        "### Scope and source identification\nThe supplement documents the structured source audit and the analyses supporting the main manuscript. Formal coding used WHO HIDR/HEAT-linked sources, GHO, GHE, GBD-linked outputs, World Bank indicators and Global Data Lab HDI. Targeted verification covered IARC/GLOBOCAN, CanScreen5, CONCORD, WHO second-hand-smoke metadata and GTSS/GATS. Shen Wang and Jing Zhou independently coded all 180 component-by-dimension cells. Their records were archived after completion, compared without alteration and showed 100% agreement (Cohen's kappa=1.000); no adjudication was required. Supplementary Figure S1 and Supplementary Tables S1-S3 give the workflow, decision rules and item-level records.",
         "### Missingness and descriptive analyses\nThe primary frame required current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence. Missingness patterns were mutually exclusive. Coverage percentages used countries in each income or WHO-region stratum as denominators. Country-level values were not population weighted. Full country membership, coverage and distributions appear in Supplementary Tables S4-S6 and Supplementary Figures S2-S4.",
         "### Inequality effect sizes\nFor each exposure, the prespecified low-income versus high-income contrast was expressed as a difference between group medians in the epidemiologically interpretable direction. Confidence intervals used 5000 within-group bootstrap resamples. Cliff's delta compared low-income with high-income country values and used the same resampling procedure. Clean-fuel structural correlations used Spearman's rho with bootstrap intervals. Estimates are reported in Supplementary Figure S5A-B and Supplementary Table S7.",
         "### Age-standardised incidence models\nThe validation model used z-scored 2021 age-standardised female lung-cancer incidence. Historical smoking was the mean female age-standardised current tobacco prevalence in 2000, 2005 and 2010. The primary model adjusted for z-scored log GDP, z-scored urbanisation and WHO region, with HC3 standard errors. The adjusted relationship in Figure 4B was visualised using the Frisch-Waugh-Lovell construction: outcome and exposure were separately residualised on the adjustment set and the residuals were related using an HC3 fit. Alternative windows, age-structure adjustment, Cook-distance exclusion, population restriction and Conley-type spatial covariance are reported in Supplementary Figure S5C-D and Supplementary Tables S8-S10; general diagnostics and spatial residual checks appear in Supplementary Figures S6 and S8.",
         "### Exploratory environmental and outcome checks\nThe incidence residual from the primary smoking model was regressed on z-scored clean-fuel deficit and PM2.5 globally and in non-high-income settings, with region and interaction sensitivity analyses. Analogous incidence and WHO mortality residuals were compared as a source-consistency check. These analyses are supplementary because environmental histories were short and the mortality label did not explicitly state age standardisation (Supplementary Figures S7 and S9; Supplementary Tables S11-S12).",
     ]
     results = [
-        "### Coverage and audit results\nMost excluded countries were missing female smoking, and complete-frame inclusion was lowest in low-income and income-unclassified settings (Supplementary Figure S2; Supplementary Tables S4-S5). Human coder agreement was 180/180 cells (100%; Cohen's kappa=1.000), and all final codes matched both secondary AI-assisted quality-control passes (Supplementary Figure S1; Supplementary Table S3). The audit retained three adequate exposure indicators but classified second-hand smoke, occupational carcinogens and radon as limited. Screening, stage and treatment sources were located but not sufficiently integrated; survival and subtype were available with limitations (Supplementary Figure S3; Supplementary Table S3).",
+        "### Coverage and audit results\nMost excluded countries were missing female smoking, and complete-frame inclusion was lowest in low-income and income-unclassified settings (Supplementary Figure S2; Supplementary Tables S4-S5). The two human coders agreed on all 180 cells (Cohen's kappa=1.000) (Supplementary Figure S1; Supplementary Table S3). Three exposure indicators met the analytic criteria; second-hand smoke, occupational carcinogens and radon were limited. Screening, stage and treatment sources were located but not sufficiently integrated, while survival and subtype data remained limited (Supplementary Figure S3; Supplementary Table S3).",
         "### Exposure inequalities\nCountry distributions varied substantially across income groups and WHO regions (Supplementary Figure S4; Supplementary Table S6). Bootstrap intervals and Cliff's delta confirmed opposing gradients for female smoking and household-energy deprivation, while ambient PM2.5 displayed a less monotonic intermediate pattern (Supplementary Figure S5A; Supplementary Table S7). Clean-fuel deficit was strongly inversely correlated with SDI, HDI and urbanisation and positively correlated with rural disadvantage (Supplementary Figure S5B).",
         "### Model and estimate-quality results\nThe historical-smoking coefficient remained positive across exposure windows, additional age-structure adjustment, Cook-distance exclusion, population restriction and Conley-type uncertainty estimates (Supplementary Figure S5C-D; Supplementary Tables S8-S10). General model diagnostics are shown in Supplementary Figure S6, and residual spatial autocorrelation remained detectable (Supplementary Figure S8). The non-high-income PM2.5 coefficient was positive before WHO-region adjustment but its interval included zero after regional adjustment (Supplementary Figure S7; Supplementary Table S11). Incidence and mortality residuals were strongly correlated, although this check does not remove source-method differences (Supplementary Figure S9; Supplementary Table S12).",
     ]
@@ -2011,6 +2124,7 @@ def supplementary_markdown(tables: list[tuple[str, list[list[str]], str]]) -> st
 
 def build_supplement_docx(tables: list[tuple[str, list[list[str]], str]], figures: list[Path]) -> Document:
     doc = Document(); set_doc_style(doc, line_numbers=False)
+    set_core_properties(doc, "Additional file 1: supplementary methods, figures and tables", "Supplementary material for BMC Public Health")
     add_para(doc, "Additional file 1", bold=True, size=16, align=WD_ALIGN_PARAGRAPH.CENTER)
     add_para(doc, "Supplementary methods, figures and tables", bold=True, size=14, align=WD_ALIGN_PARAGRAPH.CENTER)
     add_heading(doc, "Supplementary methods")
@@ -2021,15 +2135,128 @@ def build_supplement_docx(tables: list[tuple[str, list[list[str]], str]], figure
     res_part = supplementary_markdown([]).split("## Supplementary results",1)[1].split("## Supplementary figure legends",1)[0]
     for block in res_part.split("### ")[1:]:
         lines=block.strip().split("\n",1);add_heading(doc,lines[0],2);add_para(doc,lines[1] if len(lines)>1 else "")
+    doc.add_page_break()
     add_heading(doc, "Supplementary figures")
-    for fig, legend in zip(figures, SUPPLEMENTARY_FIGURE_LEGENDS):
-        add_para(doc, legend, bold=True, spacing=1.0)
-        doc.add_picture(str(fig), width=Inches(6.5))
+    for index, (fig, legend) in enumerate(zip(figures, SUPPLEMENTARY_FIGURE_LEGENDS)):
+        if index:
+            doc.add_page_break()
+        doc.add_picture(str(fig), width=Inches(6.3))
+        doc.paragraphs[-1].paragraph_format.keep_with_next = True
+        first_stop = legend.find(". ", legend.find(". ") + 2)
+        if first_stop < 0:
+            first_stop = len(legend)
+        else:
+            first_stop += 1
+        p = doc.add_paragraph()
+        p.paragraph_format.line_spacing = 1.0
+        p.paragraph_format.space_after = Pt(6)
+        title_run = p.add_run(legend[:first_stop])
+        title_run.bold = True
+        title_run.font.name = "Times New Roman"
+        title_run.font.size = Pt(9)
+        body_run = p.add_run(legend[first_stop:])
+        body_run.font.name = "Times New Roman"
+        body_run.font.size = Pt(9)
     add_heading(doc, "Supplementary tables")
     for title, rows, note in tables:
         add_para(doc, title, bold=True, spacing=1.0)
         add_word_table(doc, rows, font_size=6.4 if len(rows[0]) > 8 else 7.0, note=note)
     return doc
+
+
+def cover_letter_text() -> str:
+    return f"""13 July 2026
+
+Dear Editors,
+
+We submit our manuscript, \"{TITLE},\" for consideration as a Research Article in BMC Public Health.
+
+The study addresses a practical public-health question: which global indicators can currently support comparison of inequalities in women's lung-cancer prevention, and where does the prevention-care pathway remain unmeasured? We analysed 197 countries and territories within an HIDR-centred source frame, audited exposure, burden, care-pathway and socioeconomic outcome indicators, and quantified income-group inequalities in the exposures that met the analytic criteria. An explicitly age-standardised female lung-cancer incidence model was used as a data-coherence check rather than for causal attribution.
+
+The manuscript fits the journal's scope in chronic disease epidemiology, environmental health, social determinants of health and public-health informatics. Its main contribution is an auditable distinction between indicators that are comparable now and clinically relevant data that remain limited or insufficiently integrated. The analysis also shows that missingness is patterned by income and development and that female smoking, clean-fuel access and ambient PM2.5 follow different income gradients. Two investigators independently completed the indicator audit, formal inequalities are reported with effect sizes and bootstrap confidence intervals, and influence and spatial sensitivity analyses accompany the ecological model.
+
+The cleaned aggregate dataset, data dictionaries, audit records and reproduction code are publicly available at https://github.com/ammkkr/women-lung-cancer-equity-surveillance. The study used no individual-level or identifiable data. Use of generative AI tools is disclosed in the Methods in accordance with Springer Nature policy; the authors reviewed all code, classifications, numerical outputs and text. No generative AI images were used.
+
+All authors have read and approved the manuscript and agree to its submission. The work has not been published and is not under consideration elsewhere. The authors declare no competing interests. We are not submitting to a named collection.
+
+Thank you for considering our manuscript.
+
+Sincerely,
+
+Sha Xiao, PhD
+Corresponding author
+Key Laboratory of Tropical Translational Medicine of Ministry of Education, School of Public Health, Hainan Academy of Medical Sciences, Hainan Medical University, Haikou, Hainan 571199, People's Republic of China
+Email: hy0208032@muhn.edu.cn
+Telephone: +86 18808977719
+ORCID: 0000-0002-1645-4846
+"""
+
+
+def build_cover_letter_docx() -> Document:
+    doc = Document()
+    set_doc_style(doc, line_numbers=False)
+    set_core_properties(doc, f"Cover letter: {TITLE}", "Cover letter for BMC Public Health")
+    for block in cover_letter_text().strip().split("\n\n"):
+        add_para(doc, block, spacing=1.15)
+    return doc
+
+
+STROBE_ROWS = [
+    ["Section", "Item", "Recommendation", "Location in manuscript"],
+    ["Title and abstract", "1", "Identify the design and provide a balanced summary", "Title; structured Abstract"],
+    ["Background", "2", "Explain the scientific background and rationale", "Background, paragraphs 1-3"],
+    ["Objectives", "3", "State specific objectives and prespecified analyses", "Background, final paragraph"],
+    ["Study design", "4", "Present key design elements early", "Methods: Study design and analytical scope"],
+    ["Setting", "5", "Describe setting, locations and relevant dates", "Methods: Study design; Source frame"],
+    ["Participants/units", "6", "Give eligibility criteria and selection methods", "Methods: Study design; Source identification; Figure 1"],
+    ["Variables", "7", "Define outcomes, exposures, predictors and effect modifiers", "Methods: Primary indicators and derived measures; Table 1"],
+    ["Data sources", "8", "Describe data sources and measurement methods", "Methods: Source frame; Table 1; Supplementary Tables S1-S3"],
+    ["Bias", "9", "Describe efforts to address potential bias", "Methods: Statistical analysis; Discussion: limitations"],
+    ["Study size", "10", "Explain how the study size was determined", "Methods: one row per eligible country or territory; Results: 197 settings"],
+    ["Quantitative variables", "11", "Explain handling and grouping of quantitative variables", "Methods: Primary indicators; Statistical analysis"],
+    ["Statistical methods", "12a", "Describe all statistical methods and confounding control", "Methods: Statistical analysis"],
+    ["Statistical methods", "12b", "Describe subgroup and interaction analyses", "Methods: exploratory environmental models; Supplementary Table S11"],
+    ["Statistical methods", "12c", "Explain treatment of missing data", "Methods: complete-case and missingness analyses; Figure 1"],
+    ["Statistical methods", "12d", "Describe sampling strategy where applicable", "Not applicable; countries and territories were the analytic units"],
+    ["Statistical methods", "12e", "Describe sensitivity analyses", "Methods: influence and spatial analyses; Supplementary Tables S9-S10"],
+    ["Descriptive results", "13", "Report numbers at each stage and reasons for non-inclusion", "Results: Availability; Figure 1; Supplementary Table S4"],
+    ["Descriptive data", "14", "Report characteristics and missingness", "Results: Availability and exposure inequalities; Supplementary Tables S4-S6"],
+    ["Outcome data", "15", "Report outcome events or summary measures", "Results: incidence validation; Figure 4; Supplementary Table S8"],
+    ["Main results", "16", "Give unadjusted and adjusted estimates with precision", "Results; Table 2; Supplementary Tables S7-S8"],
+    ["Other analyses", "17", "Report subgroup, interaction and sensitivity analyses", "Results: exploratory checks; Supplementary Figures S5-S9"],
+    ["Key results", "18", "Summarise key results with reference to objectives", "Discussion, paragraphs 1-3"],
+    ["Limitations", "19", "Discuss limitations, direction and magnitude of possible bias", "Discussion, limitations paragraph"],
+    ["Interpretation", "20", "Give a cautious overall interpretation", "Discussion; Conclusions"],
+    ["Generalisability", "21", "Discuss external validity", "Discussion: source-frame and ecological limitations"],
+    ["Funding", "22", "State funding and funder roles", "Declarations: Funding"],
+]
+
+
+SAGER_GATHER_ROWS = [
+    ["Guideline", "Domain", "How addressed", "Location"],
+    ["SAGER", "Title and abstract", "The population focus is explicitly women/female and the ecological design is named.", "Title; Abstract"],
+    ["SAGER", "Background", "Sex-specific smoking and lung-cancer pathways are distinguished from individual gender identity.", "Background"],
+    ["SAGER", "Methods", "Female/sex-disaggregated indicators are defined; national indicators are not interpreted as individual exposures.", "Methods: audit and primary indicators"],
+    ["SAGER", "Results", "Female-specific estimates are reported; no unsupported female-male comparison is made.", "Results; Tables 1-2"],
+    ["SAGER", "Discussion", "Never-smoker and hormonal mechanisms are acknowledged as outside the ecological data.", "Background; Discussion"],
+    ["GATHER", "Data inputs", "Sources, access dates, definitions, units and integration rules are documented.", "Methods; Table 1; Supplementary Tables S1-S4; public repository"],
+    ["GATHER", "Data processing", "Country linkage, derived variables, complete-case rules and source limitations are specified.", "Methods; public code"],
+    ["GATHER", "Analytical methods", "Models, uncertainty procedures, diagnostics and spatial sensitivity analyses are described.", "Methods: Statistical analysis; Supplementary Tables S7-S11"],
+    ["GATHER", "Results", "Point estimates, confidence intervals, coverage and model diagnostics are reported.", "Results; Tables 1-2; Additional file 1"],
+    ["GATHER", "Reproducibility", "Cleaned aggregate data, audit records and code are publicly available.", "Availability of data and materials; GitHub repository"],
+    ["GATHER", "Limitations", "Modelled inputs, unavailable harmonised uncertainty and ecological interpretation are stated.", "Discussion: limitations"],
+]
+
+
+def build_reporting_checklist(title: str, rows: list[list[str]], note: str) -> Document:
+    doc = Document()
+    set_doc_style(doc, line_numbers=False)
+    set_core_properties(doc, title, "Reporting-guideline checklist for BMC Public Health")
+    add_para(doc, title, bold=True, size=15, align=WD_ALIGN_PARAGRAPH.CENTER)
+    add_para(doc, f"Manuscript: {TITLE}", spacing=1.0)
+    add_word_table(doc, rows, font_size=8.0, note=note)
+    return doc
+
 
 
 
@@ -2039,7 +2266,10 @@ def word_count(text: str) -> int:
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for generated_dir in [FIG_DIR, SUPP_FIG_DIR, TABLE_DIR]:
+    upload_dir = OUT_DIR / "00_UPLOAD_READY"
+    review_dir = OUT_DIR / "01_AUTHOR_REVIEW"
+    optional_dir = OUT_DIR / "03_OPTIONAL_SUPPORTING"
+    for generated_dir in [FIG_DIR, SUPP_FIG_DIR, TABLE_DIR, upload_dir, review_dir, optional_dir]:
         if generated_dir.exists():
             shutil.rmtree(generated_dir)
         generated_dir.mkdir(parents=True, exist_ok=True)
@@ -2108,10 +2338,37 @@ def main() -> None:
     main_md = manuscript_markdown(t1, t2)
     supp_md = supplementary_markdown(tables)
     main_md_path = OUT_DIR / "manuscript.md"
-    supp_md_path = OUT_DIR / "Additional_file_1_supplementary_methods_figures_tables.md"
+    supp_md_path = OUT_DIR / "additional_file_1.md"
     main_md_path.write_text(main_md, encoding="utf-8"); supp_md_path.write_text(supp_md, encoding="utf-8")
-    main_doc = build_main_docx(t1, t2, main_figures); main_doc_path = OUT_DIR / "manuscript.docx"; main_doc.save(main_doc_path)
-    supp_doc = build_supplement_docx(tables, supp_figures); supp_doc_path = OUT_DIR / "Additional_file_1_supplementary_methods_figures_tables.docx"; supp_doc.save(supp_doc_path)
+    main_doc = build_main_docx(t1, t2, main_figures, include_figure_previews=False)
+    main_doc_path = upload_dir / "manuscript.docx"
+    main_doc.save(main_doc_path)
+    review_doc = build_main_docx(t1, t2, main_figures, include_figure_previews=True)
+    review_doc.save(review_dir / "Main_manuscript_with_figure_previews.docx")
+    supp_doc = build_supplement_docx(tables, supp_figures)
+    supp_doc_path = upload_dir / "additional_file_1.docx"
+    supp_doc.save(supp_doc_path)
+    cover_doc = build_cover_letter_docx()
+    cover_doc.save(upload_dir / "Cover_letter.docx")
+    (review_dir / "Cover_letter.md").write_text(cover_letter_text(), encoding="utf-8")
+    strobe_doc = build_reporting_checklist(
+        "STROBE checklist for a cross-sectional ecological study",
+        STROBE_ROWS,
+        "Page and line numbers should be updated from the journal-generated proof if the submission system changes pagination. The country or territory is the analytic unit; participant-level items are not applicable.",
+    )
+    strobe_doc.save(upload_dir / "STROBE_checklist.docx")
+    reporting_doc = build_reporting_checklist(
+        "Optional SAGER and GATHER reporting crosswalk",
+        SAGER_GATHER_ROWS,
+        "This crosswalk is supplied for author review and may be uploaded as supporting material if requested by the editor.",
+    )
+    reporting_doc.save(optional_dir / "SAGER_GATHER_reporting_crosswalk.docx")
+    for i, fig in enumerate(main_figures, 1):
+        upload_figure = upload_dir / f"Figure_{i}.tiff"
+        shutil.copy2(fig.with_suffix(".tiff"), upload_figure)
+        flatten_tiff_to_rgb(upload_figure)
+    shutil.copy2(main_md_path, review_dir / "manuscript.md")
+    shutil.copy2(supp_md_path, review_dir / "additional_file_1.md")
 
 
     abstract_text = " ".join(ABSTRACT.values())
@@ -2153,32 +2410,10 @@ def main() -> None:
 ## Non-automatable author checks
 
 - SW and JZ coder-specific records are archived; agreement is 180/180 cells and Cohen's kappa is 1.000. Both authors should sign the final verification checklist.
-- Shen Wang and Zhangdong Jiang email addresses were not supplied in the manuscript files.
-- Jing Zhou's supplied email string should be verified for spacing and spelling.
+- Author metadata and final approvals should be verified before submission.
 - A versioned Zenodo DOI remains optional; the public GitHub commit should be cited if no DOI is created.
 """
-    (OUT_DIR / "analysis_and_submission_verification_report.md").write_text(verification, encoding="utf-8")
-    checklist = """# BMC Public Health submission readiness checklist
-
-- [x] Structured abstract below 350 words
-- [x] Background, Methods, Results, Discussion and Conclusions aligned to one contribution
-- [x] Country-level ecological design and non-causal interpretation stated
-- [x] Explicitly age-standardised primary burden anchor
-- [x] Formal inequality effect sizes with uncertainty
-- [x] Influence and spatial sensitivity analyses
-- [x] Four composite main figures exported as PNG, TIFF, SVG and PDF
-- [x] Two editable main Word tables without colour shading
-- [x] Supplementary methods and results linked to all supplementary displays
-- [x] Required BMC declarations included
-- [x] Public repository URL included
-- [x] Archive independent SW and JZ coding records and calculate agreement
-- [ ] Verify all author emails, ORCIDs and affiliations
-- [x] Prepare a relative-path release candidate with audit and provenance records
-- [ ] Confirm the public repository reproduces after the final push
-- [ ] Create a versioned Zenodo release and add DOI, if used
-- [ ] Obtain final author approval of data, code, text, figures and declarations
-"""
-    (OUT_DIR / "submission_readiness_checklist.md").write_text(checklist, encoding="utf-8")
+    (OUT_DIR / "analysis_verification_report.md").write_text(verification, encoding="utf-8")
 
     print(verification)
 

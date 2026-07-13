@@ -1,4 +1,4 @@
-﻿exposure,contrast,unit,n_low_income,n_high_income,median_low_income,median_high_income,absolute_median_difference,median_difference_95CI_low,median_difference_95CI_high,cliffs_delta_low_vs_high,cliffs_delta_95CI_low,cliffs_delta_95CI_high
+﻿Exposure,Contrast,Unit,Low-income n,High-income n,Low-income median,High-income median,Median difference,95% CI lower,95% CI upper,Cliff's delta,Delta 95% CI lower,Delta 95% CI upper
 Current female smoking,HIC minus LIC,percentage points,18,58,1.300,17.200,15.900,10.550,18.550,-0.875,-0.965,-0.750
 Clean-fuel deficit,LIC minus HIC,percentage points,25,62,96.200,0.000,96.200,89.400,98.600,1.000,1.000,1.000
 Ambient PM2.5,LIC minus HIC,micrograms per cubic metre,25,63,34.850,10.731,24.119,14.772,28.646,0.790,0.646,0.916

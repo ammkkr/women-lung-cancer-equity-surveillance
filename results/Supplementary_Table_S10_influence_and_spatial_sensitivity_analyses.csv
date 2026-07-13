@@ -1,4 +1,4 @@
-﻿analysis,n,estimate,CI_low,CI_high,P
+﻿Analysis,n,Estimate,95% CI lower,95% CI upper,P value
 Primary HC3 model,163,0.3229,0.1626,0.4833,0.0001
 Excluding Cook's distance >4/n,152,0.4037,0.2775,0.5299,0.0000
 Additional adjustment for age 65+,163,0.2775,0.1170,0.4380,0.0008

@@ -1,4 +1,4 @@
-﻿stratifier,group,indicator,n,median,Q1,Q3,minimum,maximum
+﻿Stratifier,Group,Indicator,n,Median,First quartile,Third quartile,Minimum,Maximum
 Income group,High-income,Current female smoking (%),58,17.20,6.25,22.67,0.40,44.60
 Income group,High-income,Historical female smoking (%),58,22.90,9.15,28.40,0.53,58.10
 Income group,High-income,Clean-fuel deficit (percentage points),62,0.00,0.00,0.00,0.00,4.10
