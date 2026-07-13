@@ -96,9 +96,10 @@ def save_pub(fig: plt.Figure, base: Path, dpi: int = 600) -> None:
     fig.savefig(base.with_suffix(".tiff"), bbox_inches="tight", dpi=dpi, pil_kwargs={"compression": "tiff_lzw"})
 
 
-def add_panel(ax: plt.Axes, label: str, title: str, x: float = -0.03, y: float = 1.045) -> None:
+def add_panel(ax: plt.Axes, label: str, title: str, x: float = -0.03, y: float = 1.045,
+              title_dx: float = 0.065) -> None:
     ax.text(x, y, label, transform=ax.transAxes, fontsize=11.5, fontweight="bold", ha="left", va="bottom")
-    ax.text(x + 0.065, y, title, transform=ax.transAxes, fontsize=10.0, fontweight="bold", ha="left", va="bottom")
+    ax.text(x + title_dx, y, title, transform=ax.transAxes, fontsize=10.0, fontweight="bold", ha="left", va="bottom")
 
 
 def normalize_income(df: pd.DataFrame) -> pd.DataFrame:
@@ -766,6 +767,49 @@ def draw_world_map(ax: plt.Axes, country: pd.DataFrame) -> None:
     ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.045), ncol=3, fontsize=7.2, handlelength=1.0, columnspacing=1.4)
 
 
+def draw_continuous_world_map(ax: plt.Axes, country: pd.DataFrame, value_col: str,
+                              title: str, cmap: mpl.colors.Colormap,
+                              vmin: float, vmax: float, colorbar_label: str,
+                              panel: str | None = None) -> None:
+    """Draw a country-level choropleth while preserving all tabular denominators."""
+    geo = json.loads(NATURAL_EARTH.read_text(encoding="utf-8"))
+    values = country.set_index("iso3")[value_col].to_dict()
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
+    for feat in geo["features"]:
+        props = feat.get("properties", {})
+        iso = props.get("ADM0_A3") or props.get("ISO_A3") or props.get("SOV_A3")
+        value = values.get(iso, np.nan)
+        face = "#E7E7E7" if pd.isna(value) else cmap(norm(float(value)))
+        geom = feat.get("geometry", {})
+        if geom.get("type") == "Polygon":
+            polys = [geom.get("coordinates", [])]
+        elif geom.get("type") == "MultiPolygon":
+            polys = geom.get("coordinates", [])
+        else:
+            polys = []
+        for poly in polys:
+            for ring in poly[:1]:
+                xy = np.asarray(ring)
+                if len(xy) >= 3:
+                    ax.add_patch(patches.Polygon(
+                        xy, closed=True, facecolor=face, edgecolor="white", linewidth=0.18
+                    ))
+    ax.set_xlim(-180, 180)
+    ax.set_ylim(-60, 90)
+    ax.set_aspect("equal", adjustable="box")
+    ax.axis("off")
+    ax.set_title(title, fontsize=9.1, fontweight="bold", pad=2)
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cb = ax.figure.colorbar(sm, ax=ax, orientation="horizontal", fraction=.040, pad=.012,
+                            shrink=.72, aspect=30)
+    cb.set_label(colorbar_label, fontsize=7.0, labelpad=2)
+    cb.ax.tick_params(labelsize=6.6, length=2.2, width=.6)
+    cb.outline.set_linewidth(.55)
+    if panel:
+        add_panel(ax, panel, "Global exposure geography", x=-.02, y=1.16)
+
+
 def plot_primary_coverage(ax: plt.Axes, country: pd.DataFrame) -> None:
     cover = coverage_table(country).sort_values("available_n")
     y = np.arange(len(cover))
@@ -868,7 +912,8 @@ def plot_audit_heatmap(ax: plt.Axes, side: plt.Axes) -> None:
     side.text(.02, .035, "Codes describe suitability within the predefined source frame;\nthey do not imply that no local or registry data exist.", fontsize=6.8, color="#555555", transform=side.transAxes, va="bottom")
 
 
-def plot_cliffs_forest(ax: plt.Axes, effects: pd.DataFrame) -> None:
+def plot_cliffs_forest(ax: plt.Axes, effects: pd.DataFrame, panel: str = "A",
+                       title: str = "Income-group exposure inequalities") -> None:
     y = np.arange(len(effects))[::-1]
     ax.axvline(0, color="#777777", linestyle="--", linewidth=0.9)
     for yi, (_, row) in zip(y, effects.iterrows()):
@@ -884,7 +929,7 @@ def plot_cliffs_forest(ax: plt.Axes, effects: pd.DataFrame) -> None:
     ax.text(-1.02, -0.75, "Higher in HIC", fontsize=6.9, color=BLUE, ha="left")
     ax.text(1.02, -0.75, "Higher in LIC", fontsize=6.9, color=RED, ha="right")
     ax.grid(axis="x", color=GRID, linewidth=0.6)
-    add_panel(ax, "A", "Income-group exposure inequalities")
+    add_panel(ax, panel, title)
 
 
 def distribution_axis(ax: plt.Axes, country: pd.DataFrame, col: str, title: str, ylabel: str, ylim: tuple[float, float] | None = None) -> None:
@@ -916,26 +961,75 @@ def plot_clean_fuel_dumbbell(ax: plt.Axes, country: pd.DataFrame) -> None:
         ax.plot([rural, urban], [yi, yi], color="#777777", linewidth=2.1)
         ax.scatter(rural, yi, s=58, color=GOLD, edgecolor=INK, linewidth=.6, zorder=3)
         ax.scatter(urban, yi, s=58, color=TEAL, edgecolor=INK, linewidth=.6, zorder=3)
-        if max(rural, urban) > 94:
-            xpos, halign = max(rural, urban) - 2.0, "right"
-        elif max(rural, urban) > 82:
-            xpos, halign = max(rural, urban) - 2.0, "right"
-        else:
-            xpos, halign = max(rural, urban) + 3.0, "left"
-        ax.text(xpos, yi, f"gap {urban-rural:.1f}", fontsize=7.0, va="center", ha=halign)
+        ax.text(
+            (rural + urban) / 2, yi + .20, f"gap {urban-rural:.1f}", fontsize=6.8,
+            va="bottom", ha="center",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": .78, "pad": .5},
+        )
     ax.set_yticks(y)
     ax.set_yticklabels([INCOME_SHORT[g] for g in INCOME_ORDER])
     ax.set_xlim(-3, 108)
+    ax.set_ylim(-.38, 3.42)
     ax.set_xlabel("Median clean-fuel access (%)")
     ax.grid(axis="x", color=GRID, linewidth=.6)
     ax.legend(handles=[
         plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=GOLD, markeredgecolor=INK, label="Rural", markersize=6),
         plt.Line2D([0], [0], marker="o", color="none", markerfacecolor=TEAL, markeredgecolor=INK, label="Urban", markersize=6),
     ], loc="lower left")
-    add_panel(ax, "C", "Urban-rural clean-fuel access")
+    add_panel(ax, "C", "Urban-rural clean-fuel access", x=-.04, title_dx=.13)
 
 
-def plot_clean_fuel_correlations(ax: plt.Axes, country: pd.DataFrame, corr: pd.DataFrame) -> None:
+def plot_country_urban_rural_access(ax: plt.Axes, country: pd.DataFrame) -> None:
+    d = country[["country", "income_group", "clean_fuel_rural_2020",
+                 "clean_fuel_urban_2020", "rural_clean_fuel_disadvantage"]].dropna().copy()
+    for group in INCOME_ORDER + ["Unclassified"]:
+        sub = d[d["income_group"] == group]
+        if sub.empty:
+            continue
+        ax.scatter(
+            sub["clean_fuel_rural_2020"], sub["clean_fuel_urban_2020"],
+            s=23, alpha=.70, color=INCOME_COLORS[group], edgecolor="white",
+            linewidth=.35, label=INCOME_SHORT.get(group, "Unclassified"), zorder=2,
+        )
+    ax.plot([0, 100], [0, 100], color="#7F7F7F", linewidth=.9, linestyle="--", zorder=1)
+    label_rows = d.nlargest(5, "rural_clean_fuel_disadvantage")
+    label_positions = {
+        "Marshall Islands": (1.5, 74.0, "left"),
+        "Cook Islands": (31.0, 102.0, "left"),
+        "Nicaragua": (3.0, 95.0, "right"),
+        "Zimbabwe": (22.0, 87.5, "left"),
+        "Angola": (17.0, 66.5, "left"),
+    }
+    fallback = [(8, -12), (8, 10), (-8, 12), (-8, -12), (8, 12)]
+    for j, (_, row) in enumerate(label_rows.iterrows()):
+        pos = label_positions.get(row["country"])
+        if pos:
+            xytext, coords, ha = (pos[0], pos[1]), "data", pos[2]
+        else:
+            xytext, coords, ha = fallback[j], "offset points", "left" if fallback[j][0] > 0 else "right"
+        ax.annotate(
+            row["country"],
+            (row["clean_fuel_rural_2020"], row["clean_fuel_urban_2020"]),
+            xytext=xytext, textcoords=coords, fontsize=6.1,
+            ha=ha, va="center",
+            arrowprops={"arrowstyle": "-", "color": "#777777", "lw": .55,
+                        "shrinkA": 1.5, "shrinkB": 2.0},
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": .72, "pad": .6},
+            zorder=4,
+        )
+    ax.set_xlim(-3, 103)
+    ax.set_ylim(-3, 103)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("Rural clean-fuel access (%)")
+    ax.set_ylabel("Urban clean-fuel access (%)")
+    ax.grid(color=GRID, linewidth=.5)
+    ax.legend(loc="lower right", ncol=2, fontsize=6.2, handletextpad=.25, columnspacing=.65)
+    add_panel(ax, "D", "Country-level urban-rural inequality", x=-.03, title_dx=.13)
+
+
+def plot_clean_fuel_correlations(ax: plt.Axes, country: pd.DataFrame, corr: pd.DataFrame,
+                                 panel: str = "D",
+                                 title: str = "Structural correlates of clean-fuel deficit") -> None:
     y = np.arange(len(corr))[::-1]
     ax.axvline(0, color="#777777", linestyle="--", linewidth=.9)
     for yi, (_, row) in zip(y, corr.iterrows()):
@@ -948,7 +1042,7 @@ def plot_clean_fuel_correlations(ax: plt.Axes, country: pd.DataFrame, corr: pd.D
     ax.set_xlim(-1.08, 1.42)
     ax.set_xlabel("Spearman rho with clean-fuel deficit")
     ax.grid(axis="x", color=GRID, linewidth=.6)
-    add_panel(ax, "D", "Structural correlates of clean-fuel deficit")
+    add_panel(ax, panel, title)
 
 
 def plot_incidence_scatter(ax: plt.Axes, model_stats: dict[str, object]) -> None:
@@ -965,6 +1059,92 @@ def plot_incidence_scatter(ax: plt.Axes, model_stats: dict[str, object]) -> None
     ax.grid(color=GRID, linewidth=.55)
     ax.legend(loc="lower right", ncol=2, fontsize=6.4, handletextpad=.3, columnspacing=.8)
     add_panel(ax, "A", "Historical smoking and age-standardised incidence")
+
+
+def plot_adjusted_incidence_relationship(ax: plt.Axes, model_stats: dict[str, object]) -> None:
+    """Visualise the adjusted association using the Frisch-Waugh-Lovell construction."""
+    d = model_stats["data"].copy().reset_index(drop=True)
+    Xc, nc = design_matrix(d, ["z_log_GDP", "z_urbanisation", "WHO_region"], categorical=["WHO_region"])
+    y_resid = hc3_ols(d["z_outcome"].to_numpy(), Xc, nc)["resid"]
+    x_resid = hc3_ols(d["z_exposure"].to_numpy(), Xc, nc)["resid"]
+    Xp = np.column_stack([np.ones(len(d)), x_resid])
+    partial = hc3_ols(y_resid, Xp, ["Intercept", "Adjusted historical smoking"])
+
+    for region, idx in d.groupby("WHO_region").groups.items():
+        ax.scatter(
+            x_resid[idx], y_resid[idx], s=23, alpha=.67,
+            color=REGION_COLORS.get(region, "#888888"), edgecolor="white", linewidth=.35,
+        )
+    xx = np.linspace(float(np.min(x_resid)), float(np.max(x_resid)), 180)
+    Xg = np.column_stack([np.ones(len(xx)), xx])
+    yy = Xg @ partial["beta"]
+    pred_var = np.einsum("ij,jk,ik->i", Xg, partial["cov"], Xg)
+    tcrit = stats.t.ppf(.975, partial["df_resid"])
+    band = tcrit * np.sqrt(np.clip(pred_var, 0, None))
+    ax.fill_between(xx, yy - band, yy + band, color=TEAL, alpha=.16, linewidth=0)
+    ax.plot(xx, yy, color=TEAL, linewidth=1.8)
+    c = model_stats["main_coef"]
+    ax.text(
+        .03, .97,
+        f"Adjusted beta={c['estimate']:.3f}\n95% CI {c['CI_low']:.3f} to {c['CI_high']:.3f}\nn={len(d)}",
+        transform=ax.transAxes, va="top", fontsize=7.2,
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": .84, "pad": 2.5},
+    )
+    ax.axhline(0, color="#9A9A9A", linewidth=.65, linestyle="--", zorder=0)
+    ax.axvline(0, color="#9A9A9A", linewidth=.65, linestyle="--", zorder=0)
+    ax.set_xlabel("Historical smoking residual after structural adjustment")
+    ax.set_ylabel("Incidence residual after structural adjustment")
+    ax.grid(color=GRID, linewidth=.5)
+    add_panel(ax, "B", "Adjusted smoking-incidence relationship")
+
+
+def plot_model_residual_map(ax: plt.Axes, model_stats: dict[str, object], spatial_diag: pd.DataFrame) -> None:
+    d = model_stats["diagnostics"][["iso3", "residual"]].copy()
+    max_abs = float(np.nanmax(np.abs(d["residual"])))
+    vmax = max(2.0, math.ceil(max_abs * 2) / 2)
+    cmap = LinearSegmentedColormap.from_list(
+        "residual_diverging", ["#2F6690", "#BFD7E4", "#F7F7F7", "#EBC8AE", "#B8573E"]
+    )
+    norm = mpl.colors.TwoSlopeNorm(vmin=-vmax, vcenter=0, vmax=vmax)
+    geo = json.loads(NATURAL_EARTH.read_text(encoding="utf-8"))
+    values = d.set_index("iso3")["residual"].to_dict()
+    for feat in geo["features"]:
+        props = feat.get("properties", {})
+        iso = props.get("ADM0_A3") or props.get("ISO_A3") or props.get("SOV_A3")
+        value = values.get(iso, np.nan)
+        face = "#E7E7E7" if pd.isna(value) else cmap(norm(float(value)))
+        geom = feat.get("geometry", {})
+        if geom.get("type") == "Polygon":
+            polys = [geom.get("coordinates", [])]
+        elif geom.get("type") == "MultiPolygon":
+            polys = geom.get("coordinates", [])
+        else:
+            polys = []
+        for poly in polys:
+            for ring in poly[:1]:
+                xy = np.asarray(ring)
+                if len(xy) >= 3:
+                    ax.add_patch(patches.Polygon(
+                        xy, closed=True, facecolor=face, edgecolor="white", linewidth=.18
+                    ))
+    ax.set_xlim(-180, 180)
+    ax.set_ylim(-60, 90)
+    ax.set_aspect("equal", adjustable="box")
+    ax.axis("off")
+    sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cb = ax.figure.colorbar(sm, ax=ax, orientation="horizontal", fraction=.040, pad=.015,
+                            shrink=.66, aspect=32)
+    cb.set_label("Main-model residual (standardised incidence units)", fontsize=7.0, labelpad=2)
+    cb.ax.tick_params(labelsize=6.6, length=2.2, width=.6)
+    cb.outline.set_linewidth(.55)
+    val = spatial_diag.iloc[0]
+    ax.text(
+        .015, .08, f"Moran's I={val['estimate']:.3f}; permutation P={val['P']:.3f}",
+        transform=ax.transAxes, fontsize=7.0, va="bottom",
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": .86, "pad": 2.2},
+    )
+    add_panel(ax, "D", "Geographic distribution of model residuals", x=-.01, y=1.07)
 
 
 def forest_axis(ax: plt.Axes, df: pd.DataFrame, label_col: str, title: str, panel: str, xlim: tuple[float, float] | None = None) -> None:
@@ -997,15 +1177,17 @@ def plot_model_fit(ax: plt.Axes, fit: pd.DataFrame) -> None:
     add_panel(ax, "C", "Nested model performance")
 
 
-def plot_robustness(ax: plt.Axes, robust: pd.DataFrame) -> None:
+def plot_robustness(ax: plt.Axes, robust: pd.DataFrame, panel: str = "D",
+                    title: str = "Influence and spatial sensitivity") -> None:
     wanted = ["Primary HC3 model", "Additional adjustment for age 65+", "Population at least 1 million", "Excluding Cook's distance >4/n", "Conley-type SE, 2500 km"]
     show = robust.set_index("analysis").loc[wanted].reset_index()
     show["label"] = ["Primary HC3", "+ age 65+", "Population >=1 million", "Exclude Cook >4/n", "Conley-type SE, 2500 km"]
-    forest_axis(ax, show, "label", "Influence and spatial sensitivity", "D", xlim=(0.02, .62))
+    forest_axis(ax, show, "label", title, panel, xlim=(0.02, .62))
 
 
 def save_main_figures(country: pd.DataFrame, src: pd.DataFrame, effects: pd.DataFrame, diffs: pd.DataFrame, corr: pd.DataFrame,
-                      window: pd.DataFrame, fit: pd.DataFrame, robust: pd.DataFrame, model_stats: dict[str, object]) -> list[Path]:
+                      window: pd.DataFrame, fit: pd.DataFrame, robust: pd.DataFrame,
+                      model_stats: dict[str, object], spatial_diag: pd.DataFrame) -> list[Path]:
     apply_figure_style()
     FIG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -1028,27 +1210,45 @@ def save_main_figures(country: pd.DataFrame, src: pd.DataFrame, effects: pd.Data
     save_pub(fig2, base2)
     plt.close(fig2)
 
-    fig3 = plt.figure(figsize=(13.8, 9.0))
-    gs3 = fig3.add_gridspec(2, 2, width_ratios=[.95, 1.42], height_ratios=[1.0, 1.0], wspace=.35, hspace=.46)
-    plot_cliffs_forest(fig3.add_subplot(gs3[0, 0]), effects)
-    bsub = gs3[0, 1].subgridspec(1, 3, wspace=.34)
+    fig3 = plt.figure(figsize=(14.5, 9.4))
+    outer3 = fig3.add_gridspec(2, 1, height_ratios=[1.12, 1.0], hspace=.26)
+    maps = outer3[0, 0].subgridspec(1, 3, wspace=.08)
+    smoking_cmap = LinearSegmentedColormap.from_list("smoking", ["#EEF4F8", "#8AB6CF", "#285E83"])
+    fuel_cmap = LinearSegmentedColormap.from_list("fuel", ["#FFF7DF", "#E6B65C", "#B65A3A"])
+    pm_cmap = LinearSegmentedColormap.from_list("pm25", ["#F2F4EA", "#9BB58A", "#5A4C78"])
+    draw_continuous_world_map(
+        fig3.add_subplot(maps[0, 0]), country, "female_smoking_2022", "Current female smoking, 2022",
+        smoking_cmap, 0, 45, "Prevalence (%)", panel="A",
+    )
+    draw_continuous_world_map(
+        fig3.add_subplot(maps[0, 1]), country, "clean_fuel_deficit", "Clean-fuel deficit, 2020",
+        fuel_cmap, 0, 100, "Population without access (%)",
+    )
+    draw_continuous_world_map(
+        fig3.add_subplot(maps[0, 2]), country, "PM25_2019", "Ambient PM$_{2.5}$, 2019",
+        pm_cmap, 5, 70, "Annual mean (micrograms/m$^3$)",
+    )
+    lower3 = outer3[1, 0].subgridspec(1, 3, width_ratios=[2.45, .95, 1.12], wspace=.38)
+    bsub = lower3[0, 0].subgridspec(1, 3, wspace=.34)
     distribution_axis(fig3.add_subplot(bsub[0, 0]), country, "female_smoking_2022", "Female smoking", "Prevalence (%)", (0, 55))
     distribution_axis(fig3.add_subplot(bsub[0, 1]), country, "clean_fuel_deficit", "Clean-fuel deficit", "Population without access (%)", (0, 102))
     distribution_axis(fig3.add_subplot(bsub[0, 2]), country, "PM25_2019", "Ambient PM$_{2.5}$", "Annual mean (micrograms/m$^3$)")
-    fig3.text(.445, .924, "B", fontsize=11.5, fontweight="bold")
-    fig3.text(.475, .924, "Country distributions by income group", fontsize=10, fontweight="bold")
-    plot_clean_fuel_dumbbell(fig3.add_subplot(gs3[1, 0]), country)
-    plot_clean_fuel_correlations(fig3.add_subplot(gs3[1, 1]), country, corr)
-    base3 = FIG_DIR / "Figure3_exposure_inequality_effects_and_distributions"
+    fig3.text(.026, .452, "B", fontsize=11.5, fontweight="bold")
+    fig3.text(.049, .452, "Country distributions by income group", fontsize=10, fontweight="bold")
+    plot_clean_fuel_dumbbell(fig3.add_subplot(lower3[0, 1]), country)
+    plot_country_urban_rural_access(fig3.add_subplot(lower3[0, 2]), country)
+    base3 = FIG_DIR / "Figure3_exposure_geography_and_income_inequalities"
     save_pub(fig3, base3)
     plt.close(fig3)
 
     fig4 = plt.figure(figsize=(13.8, 8.8))
-    gs4 = fig4.add_gridspec(2, 2, width_ratios=[1.12, 1.0], hspace=.42, wspace=.40)
-    plot_incidence_scatter(fig4.add_subplot(gs4[0, 0]), model_stats)
-    forest_axis(fig4.add_subplot(gs4[0, 1]), window, "exposure_window", "Alternative smoking windows", "B", xlim=(0, .56))
-    plot_model_fit(fig4.add_subplot(gs4[1, 0]), fit)
-    plot_robustness(fig4.add_subplot(gs4[1, 1]), robust)
+    outer4 = fig4.add_gridspec(2, 1, height_ratios=[1.05, .95], hspace=.40)
+    top4 = outer4[0, 0].subgridspec(1, 2, width_ratios=[1.06, 1.0], wspace=.34)
+    plot_incidence_scatter(fig4.add_subplot(top4[0, 0]), model_stats)
+    plot_adjusted_incidence_relationship(fig4.add_subplot(top4[0, 1]), model_stats)
+    bottom4 = outer4[1, 0].subgridspec(1, 2, width_ratios=[.78, 1.45], wspace=.30)
+    plot_model_fit(fig4.add_subplot(bottom4[0, 0]), fit)
+    plot_model_residual_map(fig4.add_subplot(bottom4[0, 1]), model_stats, spatial_diag)
     base4 = FIG_DIR / "Figure4_historical_smoking_and_age_standardised_incidence"
     save_pub(fig4, base4)
     plt.close(fig4)
@@ -1233,16 +1433,42 @@ def plot_outcome_consistency(ax: plt.Axes, d: pd.DataFrame, summary: pd.DataFram
     add_panel(ax,"A","Incidence and mortality residual consistency")
 
 
-def save_supplementary_figures(country: pd.DataFrame, model_stats: dict[str, object], env: pd.DataFrame, spatial_diag: pd.DataFrame, outcome_d: pd.DataFrame, outcome_summary: pd.DataFrame) -> list[Path]:
+def plot_supporting_forest_panels(fig: plt.Figure, effects: pd.DataFrame, corr: pd.DataFrame,
+                                  window: pd.DataFrame, robust: pd.DataFrame) -> None:
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.0, 1.12], hspace=.46, wspace=.38)
+    plot_cliffs_forest(
+        fig.add_subplot(gs[0, 0]), effects, panel="A",
+        title="Income-group exposure effect sizes",
+    )
+    plot_clean_fuel_correlations(
+        fig.add_subplot(gs[0, 1]), pd.DataFrame(), corr, panel="B",
+        title="Clean-fuel structural correlations",
+    )
+    forest_axis(
+        fig.add_subplot(gs[1, 0]), window, "exposure_window",
+        "Alternative smoking windows", "C", xlim=(0, .56),
+    )
+    plot_robustness(
+        fig.add_subplot(gs[1, 1]), robust, panel="D",
+        title="Influence and spatial sensitivity",
+    )
+
+
+def save_supplementary_figures(country: pd.DataFrame, model_stats: dict[str, object], env: pd.DataFrame,
+                               spatial_diag: pd.DataFrame, outcome_d: pd.DataFrame,
+                               outcome_summary: pd.DataFrame, effects: pd.DataFrame,
+                               corr: pd.DataFrame, window: pd.DataFrame,
+                               robust: pd.DataFrame) -> list[Path]:
     apply_figure_style(); SUPP_FIG_DIR.mkdir(parents=True, exist_ok=True); out=[]
     fig=plt.figure(figsize=(12.2,6.6)); plot_source_workflow(fig); base=SUPP_FIG_DIR/"Figure_S1_source_identification_and_audit_workflow"; save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(12.5,5.5)); plot_missingness_heatmaps(fig,country); base=SUPP_FIG_DIR/"Figure_S2_missingness_by_income_and_WHO_region";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(9.5,5.6));plot_audit_status_counts(fig.add_subplot(111));base=SUPP_FIG_DIR/"Figure_S3_audit_classification_counts";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(12.0,8.0));plot_region_distributions(fig,country);base=SUPP_FIG_DIR/"Figure_S4_exposure_and_incidence_by_WHO_region";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
-    fig=plt.figure(figsize=(11.5,8.0));plot_model_diagnostics(fig,model_stats);base=SUPP_FIG_DIR/"Figure_S5_incidence_model_diagnostics";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
-    fig=plt.figure(figsize=(10.5,5.8));plot_environment_forest(fig.add_subplot(111),env);base=SUPP_FIG_DIR/"Figure_S6_exploratory_environmental_heterogeneity";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
-    fig=plt.figure(figsize=(11.5,5.3));plot_moran_and_spatial(fig,model_stats,spatial_diag);base=SUPP_FIG_DIR/"Figure_S7_spatial_residual_diagnostics";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
-    fig=plt.figure(figsize=(8.4,6.8));plot_outcome_consistency(fig.add_subplot(111),outcome_d,outcome_summary);base=SUPP_FIG_DIR/"Figure_S8_incidence_mortality_residual_consistency";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(13.8,8.5));plot_supporting_forest_panels(fig,effects,corr,window,robust);base=SUPP_FIG_DIR/"Figure_S5_effect_sizes_and_robustness_forests";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(11.5,8.0));plot_model_diagnostics(fig,model_stats);base=SUPP_FIG_DIR/"Figure_S6_incidence_model_diagnostics";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(10.5,5.8));plot_environment_forest(fig.add_subplot(111),env);base=SUPP_FIG_DIR/"Figure_S7_exploratory_environmental_heterogeneity";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(11.5,5.3));plot_moran_and_spatial(fig,model_stats,spatial_diag);base=SUPP_FIG_DIR/"Figure_S8_spatial_residual_diagnostics";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(8.4,6.8));plot_outcome_consistency(fig.add_subplot(111),outcome_d,outcome_summary);base=SUPP_FIG_DIR/"Figure_S9_incidence_mortality_residual_consistency";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     return out
 
 
@@ -1270,7 +1496,7 @@ ABSTRACT = {
         "We conducted an ecological study of 197 countries and territories. The analytic frame comprised current female smoking, clean-fuel access, ambient fine particulate matter (PM2.5) and age-standardised female lung-cancer incidence. A structured audit classified exposure, burden, care-pathway and socioeconomic outcome components by coverage, disaggregation, comparability, machine-readability, uncertainty and age standardisation. Income inequalities were estimated as median differences with bootstrap 95% confidence intervals and Cliff's delta. Regression of age-standardised incidence on the available 2000-2010 female smoking proxy, gross domestic product, urbanisation and WHO region provided a validation analysis; HC3, influence and spatial sensitivity analyses were used."
     ),
     "Results": (
-        "The complete four-indicator frame included 163/197 countries and territories; 28 were missing female smoking only. Complete inclusion ranged from 72.0% in low-income to 89.1% in high-income settings. Low-income versus high-income countries had a 96.2-percentage-point higher median clean-fuel deficit (95% CI 89.4 to 98.7) and 24.1 micrograms/m3 higher median PM2.5 (95% CI 14.9 to 28.7), whereas female smoking was 15.9 percentage points higher in high-income countries (95% CI 10.5 to 18.6). Three of six exposure components were adequate for analysis, compared with one of four burden components; care and socioeconomic outcome indicators were limited, insufficiently integrated or not identified as compatible global indicators. Historical female smoking was positively associated with age-standardised incidence (standardised beta 0.323, 95% CI 0.163 to 0.483). The estimate was robust to influence and spatial sensitivity analyses, although residual spatial autocorrelation remained."
+        "The complete four-indicator frame included 163/197 countries and territories; 28 were missing female smoking only. Complete inclusion ranged from 72.0% in low-income to 89.1% in high-income settings. Low-income versus high-income countries had a 96.2-percentage-point higher median clean-fuel deficit (95% CI 89.4 to 98.6) and 24.1 micrograms/m3 higher median PM2.5 (95% CI 14.8 to 28.6), whereas female smoking was 15.9 percentage points higher in high-income countries (95% CI 10.6 to 18.5). Three of six exposure components were adequate for analysis, compared with one of four burden components; care and socioeconomic outcome indicators were limited, insufficiently integrated or not identified as compatible global indicators. Historical female smoking was positively associated with age-standardised incidence (standardised beta 0.323, 95% CI 0.163 to 0.483). The estimate was robust to influence and spatial sensitivity analyses, although residual spatial autocorrelation remained."
     ),
     "Conclusions": (
         "Global data support monitoring of selected exposure inequalities, but not the full prevention-care pathway. The principal contribution is an auditable account of what can and cannot be compared; the ecological incidence model is supportive rather than causal evidence."
@@ -1371,29 +1597,29 @@ RESULT_SECTIONS = [
     ]),
     ("Magnitude of measurable exposure inequalities", [
         (
-            "The direction and magnitude of the exposure inequalities differed sharply (Figure 3A-B; Table 2). Median current female smoking was 17.2% in high-income countries and 1.3% in low-income countries, an HIC-minus-LIC difference of 15.9 percentage points (95% CI 10.5 to 18.6; Cliff's delta for LIC relative to HIC -0.88, 95% CI -0.96 to -0.76). By contrast, median clean-fuel deficit was 96.2% in low-income countries and 0% in high-income countries, a 96.2-percentage-point LIC-minus-HIC difference (95% CI 89.4 to 98.7; Cliff's delta 1.00)."
+            "The global geography and income-group distributions of measurable exposures differed sharply (Figure 3A-B; Table 2). Median current female smoking was 17.2% in high-income countries and 1.3% in low-income countries, an HIC-minus-LIC difference of 15.9 percentage points (95% CI 10.6 to 18.5; Cliff's delta for LIC relative to HIC -0.88, 95% CI -0.96 to -0.75). By contrast, median clean-fuel deficit was 96.2% in low-income countries and 0% in high-income countries, a 96.2-percentage-point LIC-minus-HIC difference (95% CI 89.4 to 98.6; Cliff's delta 1.00) (Supplementary Figure S5A; Supplementary Table S7)."
         ),
         (
-            "Median ambient PM2.5 was 34.9 micrograms/m3 in low-income and 10.7 micrograms/m3 in high-income countries, a 24.1-microgram/m3 difference (95% CI 14.9 to 28.7; Cliff's delta 0.79, 95% CI 0.66 to 0.91). The distribution was less monotonic across intermediate income groups than the clean-fuel gradient (Figure 3B). Exposure and incidence distributions also varied by WHO region (Supplementary Figure S4; Supplementary Table S6)."
+            "Median ambient PM2.5 was 34.9 micrograms/m3 in low-income and 10.7 micrograms/m3 in high-income countries, a 24.1-microgram/m3 difference (95% CI 14.8 to 28.6; Cliff's delta 0.79, 95% CI 0.65 to 0.92). The distribution was less monotonic across intermediate income groups than the clean-fuel gradient (Figure 3B). Exposure and incidence distributions also varied by WHO region (Supplementary Figure S4; Supplementary Table S6)."
         ),
         (
-            "Residence was the clearest consistently available within-country inequality dimension. The median urban-rural clean-fuel gap was 7.0 percentage points larger in low-income than high-income countries (95% CI 2.2 to 18.1; Cliff's delta 0.90, 95% CI 0.79 to 1.00) (Figure 3A,C). The smaller median gap in low-income than lower-middle-income settings did not imply greater equity: many low-income countries had low access in both urban and rural populations. Clean-fuel deficit correlated inversely with SDI (rho=-0.898, 95% CI -0.925 to -0.859), HDI (rho=-0.909, 95% CI -0.932 to -0.869) and urbanisation (rho=-0.663, 95% CI -0.740 to -0.571), and positively with the rural clean-fuel gap (rho=0.709, 95% CI 0.592 to 0.802) (Figure 3D; Supplementary Table S7)."
+            "Residence was the clearest consistently available within-country inequality dimension. The median urban-rural clean-fuel gap was 7.0 percentage points larger in low-income than high-income countries (95% CI 2.2 to 18.1; Cliff's delta 0.90, 95% CI 0.79 to 1.00) (Figure 3C-D; Table 2; Supplementary Figure S5A). The smaller median gap in low-income than lower-middle-income settings did not imply greater equity: many low-income countries had low access in both urban and rural populations. Clean-fuel deficit correlated inversely with SDI (rho=-0.898, 95% CI -0.925 to -0.859), HDI (rho=-0.909, 95% CI -0.932 to -0.869) and urbanisation (rho=-0.663, 95% CI -0.740 to -0.571), and positively with the rural clean-fuel gap (rho=0.709, 95% CI 0.592 to 0.802) (Supplementary Figure S5B)."
         ),
     ]),
     ("Age-standardised incidence validation analysis", [
         (
-            "Historical female smoking was positively associated with age-standardised female lung-cancer incidence. Among 163 countries with complete model variables, the unadjusted standardised coefficient was 0.60. After adjustment for log GDP, urbanisation and WHO region, the coefficient was 0.323 (95% CI 0.163 to 0.483; P<0.001) (Figure 4A; Table 2; Supplementary Table S8). The adjusted model explained 56.4% of outcome variation (adjusted R-squared 0.541). Adding current clean-fuel deficit and PM2.5 did not improve fit: adjusted R-squared was 0.536 and AIC increased from 345.3 to 346.7 (Figure 4C)."
+            "Historical female smoking was positively associated with age-standardised female lung-cancer incidence. Among 163 countries with complete model variables, the unadjusted standardised coefficient was 0.60. After adjustment for log GDP, urbanisation and WHO region, the coefficient was 0.323 (95% CI 0.163 to 0.483; P<0.001) (Figure 4A-B; Table 2; Supplementary Table S8). The adjusted model explained 56.4% of outcome variation (adjusted R-squared 0.541). Adding current clean-fuel deficit and PM2.5 did not improve fit: adjusted R-squared was 0.536 and AIC increased from 345.3 to 346.7 (Figure 4C)."
         ),
         (
-            "Associations were similar for female smoking in 2000, 2005 and 2010; the coefficient for current smoking in 2022 was smaller (0.177, 95% CI 0.017 to 0.338) (Figure 4B; Supplementary Table S9). The historical-smoking estimate remained positive after additional age-65 adjustment, exclusion of 11 countries above the Cook threshold, restriction to populations of at least one million, and Conley-type spatial covariance estimation (Figure 4D; Supplementary Tables S9-S10). Model residuals showed modest spatial autocorrelation (Moran's I=0.106; permutation P=0.009). Spatial sensitivity intervals were therefore reported, and country observations were not assumed to be fully independent (Supplementary Figures S5 and S7)."
+            "Associations were similar for female smoking in 2000, 2005 and 2010; the coefficient for current smoking in 2022 was smaller (0.177, 95% CI 0.017 to 0.338) (Supplementary Figure S5C; Supplementary Table S9). The historical-smoking estimate remained positive after additional age-65 adjustment, exclusion of 11 countries above the Cook threshold, restriction to populations of at least one million, and Conley-type spatial covariance estimation (Supplementary Figure S5D; Supplementary Tables S9-S10). Model residuals showed modest spatial autocorrelation (Moran's I=0.106; permutation P=0.009), visible as a non-random geographic pattern in Figure 4D. Spatial sensitivity intervals were therefore reported, and country observations were not assumed to be fully independent (Supplementary Figures S6 and S8)."
         ),
     ]),
     ("Exploratory environmental and outcome checks", [
         (
-            "Environmental residual models did not support a uniform global association. In the mutually adjusted global model, the PM2.5 coefficient was -0.009 (95% CI -0.130 to 0.112). Among non-high-income countries it was 0.124 (95% CI 0.013 to 0.235), but it attenuated after WHO-region adjustment to 0.106 (95% CI -0.042 to 0.254) (Supplementary Figure S6; Supplementary Table S11). The PM2.5-by-high-income interaction was directionally consistent before and after influence exclusion, but these ecological subgroup results were retained as exploratory because they depended on context specification and short-lag exposure measures."
+            "Environmental residual models did not support a uniform global association. In the mutually adjusted global model, the PM2.5 coefficient was -0.009 (95% CI -0.130 to 0.112). Among non-high-income countries it was 0.124 (95% CI 0.013 to 0.235), but it attenuated after WHO-region adjustment to 0.106 (95% CI -0.042 to 0.254) (Supplementary Figure S7; Supplementary Table S11). The PM2.5-by-high-income interaction was directionally consistent before and after influence exclusion, but these ecological subgroup results were retained as exploratory because they depended on context specification and short-lag exposure measures."
         ),
         (
-            "Incidence- and mortality-model residuals were correlated among 163 common countries (Pearson r=0.804; Spearman rho=0.758) (Supplementary Figure S8; Supplementary Table S12). This consistency reduced concern that the incidence pattern was unique to one outcome, but it did not solve differences in source methods, registration quality, treatment access or uncertainty. Mortality, YLL and DALY were therefore used only for supplementary triangulation."
+            "Incidence- and mortality-model residuals were correlated among 163 common countries (Pearson r=0.804; Spearman rho=0.758) (Supplementary Figure S9; Supplementary Table S12). This consistency reduced concern that the incidence pattern was unique to one outcome, but it did not solve differences in source methods, registration quality, treatment access or uncertainty. Mortality, YLL and DALY were therefore used only for supplementary triangulation."
         ),
     ]),
 ]
@@ -1507,21 +1733,21 @@ def main_table2(country: pd.DataFrame, effects: pd.DataFrame, diffs: pd.DataFram
         ["Evidence domain", "Quantitative finding", "Sample/coverage", "Interpretation", "Related display"],
         ["Analytic-frame availability", "Four indicators jointly available for 163/197; 28/34 excluded settings missing female smoking only", "197 countries and territories", "The frame is broad but incomplete; smoking is the main driver of exclusion", "Figure 1A-B; Supplementary Table S4"],
         ["Patterned missingness", f"Complete frame: LIC 72.0%, LMIC 82.0%, UMIC 84.9%, HIC 89.1%; excluded-minus-included HDI {hdi['excluded_minus_included']:.3f} (95% CI {hdi['CI_low']:.3f} to {hdi['CI_high']:.3f})", "192 income-classified; HDI n=164", "Missingness is associated with development context and should not be treated as random", "Figure 1C-D; Supplementary Figure S2"],
-        ["Female smoking inequality", ef("Current female smoking"), "LIC n=18; HIC n=58", "Current female smoking is higher in high-income settings", "Figure 3A-B; Supplementary Table S7"],
-        ["Clean-fuel inequality", ef("Clean-fuel deficit"), "LIC n=25; HIC n=62", "Household-energy deprivation is concentrated in low-income settings", "Figure 3A-B; Supplementary Table S7"],
-        ["Ambient PM2.5 inequality", ef("Ambient PM2.5"), "LIC n=25; HIC n=63", "Ambient pollution is higher in low-income settings, with a non-monotonic intermediate gradient", "Figure 3A-B; Supplementary Table S7"],
-        ["Residence inequality", ef("Urban-rural clean-fuel gap"), "LIC n=25; HIC n=62", "A small gap can coexist with universally low access; absolute access and distribution must be interpreted together", "Figure 3A,C"],
-        ["Age-standardised incidence anchor", f"Adjusted historical-smoking beta {main['estimate']:.3f} (95% CI {main['CI_low']:.3f} to {main['CI_high']:.3f}; P<0.001)", "n=163", "Expected positive association supports data coherence but is not causal attribution", "Figure 4; Supplementary Tables S8-S10"],
-        ["Exploratory PM2.5 heterogeneity", f"Non-HIC beta {nonhic['estimate']:.3f} ({nonhic['CI_low']:.3f} to {nonhic['CI_high']:.3f}); after WHO-region adjustment {reg['estimate']:.3f} ({reg['CI_low']:.3f} to {reg['CI_high']:.3f})", "n=104", "The subgroup signal attenuates with regional context and remains exploratory", "Supplementary Figure S6; Supplementary Table S11"],
-        ["Outcome consistency", f"Incidence- and mortality-model residuals: Pearson r={pearson['estimate']:.3f}", "n=163", "Cross-outcome consistency is supportive but does not remove source and standardisation limitations", "Supplementary Figure S8; Supplementary Table S12"],
+        ["Female smoking inequality", ef("Current female smoking"), "LIC n=18; HIC n=58", "Current female smoking is higher in high-income settings", "Figure 3A-B; Supplementary Figure S5A; Supplementary Table S7"],
+        ["Clean-fuel inequality", ef("Clean-fuel deficit"), "LIC n=25; HIC n=62", "Household-energy deprivation is concentrated in low-income settings", "Figure 3A-B; Supplementary Figure S5A; Supplementary Table S7"],
+        ["Ambient PM2.5 inequality", ef("Ambient PM2.5"), "LIC n=25; HIC n=63", "Ambient pollution is higher in low-income settings, with a non-monotonic intermediate gradient", "Figure 3A-B; Supplementary Figure S5A; Supplementary Table S7"],
+        ["Residence inequality", ef("Urban-rural clean-fuel gap"), "LIC n=25; HIC n=62", "A small gap can coexist with universally low access; absolute access and distribution must be interpreted together", "Figure 3C-D; Supplementary Figure S5A"],
+        ["Age-standardised incidence anchor", f"Adjusted historical-smoking beta {main['estimate']:.3f} (95% CI {main['CI_low']:.3f} to {main['CI_high']:.3f}; P<0.001)", "n=163", "Expected positive association supports data coherence but is not causal attribution", "Figure 4A-D; Supplementary Figure S5C-D; Supplementary Tables S8-S10"],
+        ["Exploratory PM2.5 heterogeneity", f"Non-HIC beta {nonhic['estimate']:.3f} ({nonhic['CI_low']:.3f} to {nonhic['CI_high']:.3f}); after WHO-region adjustment {reg['estimate']:.3f} ({reg['CI_low']:.3f} to {reg['CI_high']:.3f})", "n=104", "The subgroup signal attenuates with regional context and remains exploratory", "Supplementary Figure S7; Supplementary Table S11"],
+        ["Outcome consistency", f"Incidence- and mortality-model residuals: Pearson r={pearson['estimate']:.3f}", "n=163", "Cross-outcome consistency is supportive but does not remove source and standardisation limitations", "Supplementary Figure S9; Supplementary Table S12"],
     ]
 
 
 FIGURE_LEGENDS = [
     "Figure 1. Availability and patterned missingness in the four-indicator analytic frame. (A) Country and territory missingness patterns for current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence. Grey map areas were not matched to the analytic frame and are not counted as missing. (B) Indicator-specific availability. The dashed line marks the 163-country complete overlap and is not an adequacy threshold. (C) Complete-frame inclusion by World Bank income group. (D) Median HDI and SDI differences between excluded and included countries; points are excluded-minus-included differences and lines are 5000-sample bootstrap 95% confidence intervals. LIC, low-income country; LMIC, lower-middle-income country; UMIC, upper-middle-income country; HIC, high-income country.",
     "Figure 2. Availability audit across prevention, burden, care and equity domains. (A) Adjudicated component-by-dimension audit. A indicates adequate for this analysis; L, available with limitations; LH, a relevant source was located but was not sufficiently harmonised or integrated; NG, no compatible global indicator was identified within the predefined source frame; NA, not applicable. (B) Audit key and counts of overall classifications by domain. Classifications describe analytical suitability within the source frame and do not imply that no local, registry or research data exist.",
-    "Figure 3. Country-level exposure inequalities by income and development context. (A) Cliff's delta compares low-income with high-income countries; negative values indicate higher values in high-income countries and positive values indicate higher values in low-income countries. Lines are bootstrap 95% confidence intervals. (B) Country distributions by income group; boxes show medians and interquartile ranges, whiskers extend to 1.5 times the interquartile range, and points are countries. (C) Income-group medians for urban and rural clean-fuel access; gaps are urban minus rural access. (D) Spearman correlations between clean-fuel deficit and structural indicators with bootstrap 95% confidence intervals. Income-unclassified settings were excluded from income-group panels.",
-    "Figure 4. Historical female smoking and age-standardised lung-cancer incidence. (A) Country-level association between the 2000-2010 female smoking mean and 2021 age-standardised female lung-cancer incidence; colours denote WHO regions and the line is the unadjusted fit. The adjusted coefficient controls for log GDP, urbanisation and WHO region with HC3 standard errors. (B) Adjusted coefficients for alternative smoking windows. (C) Adjusted R-squared and AIC for nested models. (D) Influence, population-size and spatial-covariance sensitivity estimates. All coefficients are standardised. These ecological associations are validation analyses and should not be interpreted as individual-level or causal effects.",
+    "Figure 3. Global geography and income patterning of measurable prevention exposures. (A) Country-level choropleths for current female smoking in 2022, clean-fuel deficit in 2020 and ambient PM2.5 in 2019. Each map has its own scale; grey denotes no mapped value, and countries or territories without Natural Earth geometry remain in tabular analyses. (B) Country distributions by World Bank income group; boxes show medians and interquartile ranges, whiskers extend to 1.5 times the interquartile range, and points are countries. (C) Income-group medians for urban and rural clean-fuel access; labelled gaps are urban minus rural access. (D) Country-level urban versus rural clean-fuel access. The dashed diagonal denotes equal access, and selected labels identify the five largest observed urban-rural gaps rather than country rankings. Income-unclassified settings were excluded from income-group panels but retained in panel D. LIC, low-income country; LMIC, lower-middle-income country; UMIC, upper-middle-income country; HIC, high-income country.",
+    "Figure 4. Historical female smoking and age-standardised lung-cancer incidence. (A) Unadjusted country-level association between the 2000-2010 female smoking mean and 2021 age-standardised female lung-cancer incidence; colours denote WHO regions. (B) Frisch-Waugh-Lovell partial-regression display after adjustment of both variables for log GDP, urbanisation and WHO region. The line and shaded band show the adjusted fit and pointwise HC3 95% confidence interval; the annotated coefficient is from the prespecified primary model. (C) Adjusted R-squared and AIC for nested models. (D) Geographic distribution of primary-model residuals; positive values indicate incidence higher than predicted by the model and negative values indicate lower incidence. Residuals are model diagnostics, not estimates of omitted exposures or causal effects. Grey denotes no mapped model residual. All model variables are standardised.",
 ]
 
 
@@ -1530,10 +1756,11 @@ SUPPLEMENTARY_FIGURE_LEGENDS = [
     "Supplementary Figure S2. Coverage by income group and WHO region. Cells report the percentage of countries or territories with each primary indicator and the complete four-indicator overlap.",
     "Supplementary Figure S3. Overall audit classifications by domain. Stacked bars summarise the adjudicated overall classification of components shown individually in Figure 2 and Supplementary Table S3.",
     "Supplementary Figure S4. Exposure and age-standardised incidence distributions by WHO region. Boxes show medians and interquartile ranges, whiskers extend to 1.5 times the interquartile range, and points represent countries or territories.",
-    "Supplementary Figure S5. Incidence-model diagnostics. Panels show residuals versus fitted values, a normal quantile plot, leverage versus residuals and the 12 largest Cook's distances. The dashed Cook threshold is 4/n.",
-    "Supplementary Figure S6. Exploratory PM2.5 heterogeneity. Coefficients and HC3 95% confidence intervals are shown for global, non-high-income, WHO-region-adjusted and interaction analyses of the age-standardised incidence residual. Interaction estimates refer to PM2.5 by high-income status and are not directly comparable with the PM2.5 main-effect rows.",
-    "Supplementary Figure S7. Spatial residual diagnostics. The Moran scatter plot and geographic residual display use countries matched to Natural Earth centroids. Moran's I used a symmetrised six-nearest-neighbour matrix and 999 permutations.",
-    "Supplementary Figure S8. Incidence-mortality residual consistency. Residuals were derived from analogous historical-smoking models adjusted for log GDP, urbanisation and WHO region. The mortality outcome was retained only for supplementary triangulation because age standardisation was not explicit in its downloaded label.",
+    "Supplementary Figure S5. Effect-size and robustness estimates supporting Figures 3 and 4. (A) Cliff's delta for low-income relative to high-income countries with 5000-sample bootstrap 95% confidence intervals; negative values indicate higher values in high-income settings and positive values indicate higher values in low-income settings. (B) Spearman correlations of clean-fuel deficit with structural indicators and bootstrap 95% confidence intervals. (C) Adjusted historical-smoking coefficients across alternative exposure windows. (D) Influence, population-size and spatial-covariance sensitivity estimates. Forest plots are retained in the supplement because the corresponding main figures prioritise spatial patterns and underlying country distributions.",
+    "Supplementary Figure S6. Incidence-model diagnostics. Panels show residuals versus fitted values, a normal quantile plot, leverage versus residuals and the 12 largest Cook's distances. The dashed Cook threshold is 4/n.",
+    "Supplementary Figure S7. Exploratory PM2.5 heterogeneity. Coefficients and HC3 95% confidence intervals are shown for global, non-high-income, WHO-region-adjusted and interaction analyses of the age-standardised incidence residual. Interaction estimates refer to PM2.5 by high-income status and are not directly comparable with the PM2.5 main-effect rows.",
+    "Supplementary Figure S8. Spatial residual diagnostics. The Moran scatter plot and geographic residual display use countries matched to Natural Earth centroids. Moran's I used a symmetrised six-nearest-neighbour matrix and 999 permutations.",
+    "Supplementary Figure S9. Incidence-mortality residual consistency. Residuals were derived from analogous historical-smoking models adjusted for log GDP, urbanisation and WHO region. The mortality outcome was retained only for supplementary triangulation because age standardisation was not explicit in its downloaded label.",
 ]
 
 
@@ -1576,7 +1803,7 @@ def manuscript_markdown(table1: list[list[str]], table2: list[list[str]]) -> str
         "### Table 1. Analytic indicators and operational characteristics\n" + md_table(table1) + "\n\n*Notes:* Coverage denominators are the 197-country and territory analytic frame unless otherwise stated. PM2.5 denotes ambient fine particulate matter; YLL, years of life lost; DALY, disability-adjusted life year.",
         "### Table 2. Quantitative evidence supporting the surveillance interpretation\n" + md_table(table2) + "\n\n*Notes:* Confidence intervals for median differences and Cliff's delta were obtained by non-parametric bootstrap. Regression confidence intervals use HC3 standard errors unless stated otherwise. Results are ecological and descriptive.",
         "## Figure legends\n" + "\n\n".join(FIGURE_LEGENDS),
-        "## Additional file\nAdditional file 1. **File name:** Additional_file_1_supplementary_methods_figures_tables.docx. **Format:** DOCX. **Title:** Supplementary methods, figures and tables. **Description:** Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, eight supplementary figures and twelve supplementary tables.",
+        "## Additional file\nAdditional file 1. **File name:** Additional_file_1_supplementary_methods_figures_tables.docx. **Format:** DOCX. **Title:** Supplementary methods, figures and tables. **Description:** Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.",
     ])
     return "\n\n".join(parts) + "\n"
 
@@ -1690,7 +1917,7 @@ def build_main_docx(table1: list[list[str]], table2: list[list[str]], main_figur
         add_para(doc, f"Figure {i}.", bold=True, spacing=1.0)
         doc.add_picture(str(fig), width=Inches(6.5))
     add_heading(doc, "Additional file")
-    add_para(doc, "Additional file 1. File name: Additional_file_1_supplementary_methods_figures_tables.docx. Format: DOCX. Title: Supplementary methods, figures and tables. Description: Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, eight supplementary figures and twelve supplementary tables.")
+    add_para(doc, "Additional file 1. File name: Additional_file_1_supplementary_methods_figures_tables.docx. Format: DOCX. Title: Supplementary methods, figures and tables. Description: Detailed source-identification and audit methods, missingness and descriptive summaries, formal exposure-inequality estimates, incidence-model coefficients and diagnostics, influence and spatial sensitivity analyses, exploratory environmental heterogeneity, outcome consistency checks, nine supplementary figures and twelve supplementary tables.")
     return doc
 
 
@@ -1749,14 +1976,14 @@ def supplementary_markdown(tables: list[tuple[str, list[list[str]], str]]) -> st
     methods = [
         "### Scope and source identification\nThe supplement documents the structured source audit and all analyses supporting the main manuscript. Formal coding used WHO HIDR/HEAT-linked sources, GHO, GHE, GBD-linked outputs, World Bank indicators and Global Data Lab HDI. Targeted verification covered IARC/GLOBOCAN, CanScreen5, CONCORD, WHO second-hand-smoke metadata and GTSS/GATS. Shen Wang and Jing Zhou independently coded all 180 component-by-dimension cells. Their coder-specific records were archived after completion, compared without alteration and showed 100% agreement (Cohen's kappa=1.000); no adjudication change was required. Two AI-assisted read-only passes reproduced the final classifications as secondary quality control and were excluded from the human agreement statistic. The workflow and decision rules are shown in Supplementary Figure S1 and Supplementary Tables S1-S3.",
         "### Missingness and descriptive analyses\nThe primary frame required current female smoking, clean-fuel access, ambient PM2.5 and age-standardised female lung-cancer incidence. Missingness patterns were mutually exclusive. Coverage percentages used countries in each income or WHO-region stratum as denominators. Country-level values were not population weighted. Full country membership, coverage and distributions appear in Supplementary Tables S4-S6 and Supplementary Figures S2-S4.",
-        "### Inequality effect sizes\nFor each exposure, the prespecified low-income versus high-income contrast was expressed as a difference between group medians in the epidemiologically interpretable direction. Confidence intervals used 5000 within-group bootstrap resamples. Cliff's delta compared low-income with high-income country values and used the same resampling procedure. Estimates are reported in Supplementary Table S7.",
-        "### Age-standardised incidence models\nThe validation model used z-scored 2021 age-standardised female lung-cancer incidence. Historical smoking was the mean female age-standardised current tobacco prevalence in 2000, 2005 and 2010. The primary model adjusted for z-scored log GDP, z-scored urbanisation and WHO region, with HC3 standard errors. Model diagnostics, alternative windows, age-structure adjustment, Cook-distance exclusion, population restriction, Moran's I and Conley-type spatial covariance are reported in Supplementary Figures S5 and S7 and Supplementary Tables S8-S10.",
-        "### Exploratory environmental and outcome checks\nThe incidence residual from the primary smoking model was regressed on z-scored clean-fuel deficit and PM2.5 globally and in non-high-income settings, with region and interaction sensitivity analyses. Analogous incidence and WHO mortality residuals were compared as a source-consistency check. These analyses are supplementary because environmental histories were short and the mortality label did not explicitly state age standardisation (Supplementary Figures S6 and S8; Supplementary Tables S11-S12).",
+        "### Inequality effect sizes\nFor each exposure, the prespecified low-income versus high-income contrast was expressed as a difference between group medians in the epidemiologically interpretable direction. Confidence intervals used 5000 within-group bootstrap resamples. Cliff's delta compared low-income with high-income country values and used the same resampling procedure. Clean-fuel structural correlations used Spearman's rho with bootstrap intervals. Estimates are reported in Supplementary Figure S5A-B and Supplementary Table S7.",
+        "### Age-standardised incidence models\nThe validation model used z-scored 2021 age-standardised female lung-cancer incidence. Historical smoking was the mean female age-standardised current tobacco prevalence in 2000, 2005 and 2010. The primary model adjusted for z-scored log GDP, z-scored urbanisation and WHO region, with HC3 standard errors. The adjusted relationship in Figure 4B was visualised using the Frisch-Waugh-Lovell construction: outcome and exposure were separately residualised on the adjustment set and the residuals were related using an HC3 fit. Alternative windows, age-structure adjustment, Cook-distance exclusion, population restriction and Conley-type spatial covariance are reported in Supplementary Figure S5C-D and Supplementary Tables S8-S10; general diagnostics and spatial residual checks appear in Supplementary Figures S6 and S8.",
+        "### Exploratory environmental and outcome checks\nThe incidence residual from the primary smoking model was regressed on z-scored clean-fuel deficit and PM2.5 globally and in non-high-income settings, with region and interaction sensitivity analyses. Analogous incidence and WHO mortality residuals were compared as a source-consistency check. These analyses are supplementary because environmental histories were short and the mortality label did not explicitly state age standardisation (Supplementary Figures S7 and S9; Supplementary Tables S11-S12).",
     ]
     results = [
         "### Coverage and audit results\nMost excluded countries were missing female smoking, and complete-frame inclusion was lowest in low-income and income-unclassified settings (Supplementary Figure S2; Supplementary Tables S4-S5). Human coder agreement was 180/180 cells (100%; Cohen's kappa=1.000), and all final codes matched both secondary AI-assisted quality-control passes (Supplementary Figure S1; Supplementary Table S3). The audit retained three adequate exposure indicators but classified second-hand smoke, occupational carcinogens and radon as limited. Screening, stage and treatment sources were located but not sufficiently integrated; survival and subtype were available with limitations (Supplementary Figure S3; Supplementary Table S3).",
-        "### Exposure inequalities\nCountry distributions varied substantially across income groups and WHO regions (Supplementary Figure S4; Supplementary Table S6). Bootstrap intervals and Cliff's delta confirmed opposing gradients for female smoking and household-energy deprivation, while ambient PM2.5 displayed a less monotonic intermediate pattern (Supplementary Table S7).",
-        "### Model and estimate-quality results\nThe historical-smoking coefficient remained positive across exposure windows, additional age-structure adjustment, Cook-distance exclusion, population restriction and Conley-type uncertainty estimates (Supplementary Tables S8-S10). Residual spatial autocorrelation remained detectable (Supplementary Figure S7). The non-high-income PM2.5 coefficient was positive before WHO-region adjustment but its interval included zero after regional adjustment (Supplementary Figure S6; Supplementary Table S11). Incidence and mortality residuals were strongly correlated, although this check does not remove source-method differences (Supplementary Figure S8; Supplementary Table S12).",
+        "### Exposure inequalities\nCountry distributions varied substantially across income groups and WHO regions (Supplementary Figure S4; Supplementary Table S6). Bootstrap intervals and Cliff's delta confirmed opposing gradients for female smoking and household-energy deprivation, while ambient PM2.5 displayed a less monotonic intermediate pattern (Supplementary Figure S5A; Supplementary Table S7). Clean-fuel deficit was strongly inversely correlated with SDI, HDI and urbanisation and positively correlated with rural disadvantage (Supplementary Figure S5B).",
+        "### Model and estimate-quality results\nThe historical-smoking coefficient remained positive across exposure windows, additional age-structure adjustment, Cook-distance exclusion, population restriction and Conley-type uncertainty estimates (Supplementary Figure S5C-D; Supplementary Tables S8-S10). General model diagnostics are shown in Supplementary Figure S6, and residual spatial autocorrelation remained detectable (Supplementary Figure S8). The non-high-income PM2.5 coefficient was positive before WHO-region adjustment but its interval included zero after regional adjustment (Supplementary Figure S7; Supplementary Table S11). Incidence and mortality residuals were strongly correlated, although this check does not remove source-method differences (Supplementary Figure S9; Supplementary Table S12).",
     ]
     parts = ["# Additional file 1", "## Supplementary methods", *methods, "## Supplementary results", *results, "## Supplementary figure legends", "\n\n".join(SUPPLEMENTARY_FIGURE_LEGENDS), "## Supplementary tables"]
     for title, rows, note in tables:
@@ -1849,8 +2076,11 @@ def main() -> None:
     }
     for name, frame in outputs.items(): frame.to_csv(TABLE_DIR / name, index=False, encoding="utf-8-sig")
 
-    main_figures = save_main_figures(country, src, effects, diffs, corr, window, fit, robust, model_stats)
-    supp_figures = save_supplementary_figures(country, model_stats, env, spatial_diag, outcome_d, outcome_summary)
+    main_figures = save_main_figures(country, src, effects, diffs, corr, window, fit, robust, model_stats, spatial_diag)
+    supp_figures = save_supplementary_figures(
+        country, model_stats, env, spatial_diag, outcome_d, outcome_summary,
+        effects, corr, window, robust,
+    )
     t1 = main_table1(country); t2 = main_table2(country, effects, diffs, model_stats, env, outcome_summary)
     tables = supplementary_tables(country, effects, coef, fit, window, robust, spatial_diag, env, outcome_summary, corr, inc_miss, reg_miss)
     for i, (title, rows, _) in enumerate(tables, 1):
