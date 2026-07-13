@@ -1,0 +1,12 @@
+﻿dimension,cells,agreements,percent_agreement,Cohens_kappa
+All 10 dimensions,180,180,100.0,1.0
+Coverage,18,18,100.0,1.0
+Female/sex,18,18,100.0,1.0
+Residence,18,18,100.0,1.0
+Socioeconomic,18,18,100.0,1.0
+Time series,18,18,100.0,1.0
+Comparable,18,18,100.0,1.0
+Machine-readable,18,18,100.0,1.0
+Uncertainty,18,18,100.0,1.0
+Age standard,18,18,100.0,1.0
+Overall,18,18,100.0,1.0

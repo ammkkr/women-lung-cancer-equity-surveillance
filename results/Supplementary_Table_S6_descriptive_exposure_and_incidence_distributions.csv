@@ -1,0 +1,67 @@
+﻿stratifier,group,indicator,n,median,Q1,Q3,minimum,maximum
+Income group,High-income,Current female smoking (%),58,17.20,6.25,22.67,0.40,44.60
+Income group,High-income,Historical female smoking (%),58,22.90,9.15,28.40,0.53,58.10
+Income group,High-income,Clean-fuel deficit (percentage points),62,0.00,0.00,0.00,0.00,4.10
+Income group,High-income,Urban-rural clean-fuel gap (percentage points),62,0.00,0.00,0.00,0.00,9.80
+Income group,High-income,Ambient PM2.5 (micrograms per cubic metre),63,10.73,8.50,14.57,5.20,64.08
+Income group,High-income,"Age-standardised female LC incidence (per 100,000)",63,15.80,9.11,22.98,2.05,56.17
+Income group,Low-income,Current female smoking (%),18,1.30,0.60,2.00,0.00,6.50
+Income group,Low-income,Historical female smoking (%),18,3.02,1.31,5.45,0.00,11.20
+Income group,Low-income,Clean-fuel deficit (percentage points),25,96.20,88.30,98.80,7.60,100.00
+Income group,Low-income,Urban-rural clean-fuel gap (percentage points),25,7.00,2.10,20.80,0.00,68.10
+Income group,Low-income,Ambient PM2.5 (micrograms per cubic metre),25,34.85,22.74,39.42,14.28,62.49
+Income group,Low-income,"Age-standardised female LC incidence (per 100,000)",25,3.44,2.83,4.19,0.82,14.38
+Income group,Lower-middle-income,Current female smoking (%),42,1.50,0.83,3.95,0.20,26.80
+Income group,Lower-middle-income,Historical female smoking (%),42,3.50,1.87,10.41,0.50,46.23
+Income group,Lower-middle-income,Clean-fuel deficit (percentage points),48,63.85,45.30,87.05,0.10,99.00
+Income group,Lower-middle-income,Urban-rural clean-fuel gap (percentage points),48,33.25,15.77,48.12,0.00,76.40
+Income group,Lower-middle-income,Ambient PM2.5 (micrograms per cubic metre),50,24.73,15.52,37.58,7.62,63.16
+Income group,Lower-middle-income,"Age-standardised female LC incidence (per 100,000)",49,4.74,3.66,9.46,0.92,17.85
+Income group,Unclassified,Current female smoking (%),2,11.55,6.23,16.88,0.90,22.20
+Income group,Unclassified,Historical female smoking (%),2,15.55,8.18,22.93,0.80,30.30
+Income group,Unclassified,Clean-fuel deficit (percentage points),4,14.68,4.49,41.38,1.60,93.80
+Income group,Unclassified,Urban-rural clean-fuel gap (percentage points),4,18.20,10.35,36.45,-0.30,78.30
+Income group,Unclassified,Ambient PM2.5 (micrograms per cubic metre),4,12.01,7.54,17.61,6.74,21.80
+Income group,Unclassified,"Age-standardised female LC incidence (per 100,000)",4,11.64,8.86,13.45,2.58,16.81
+Income group,Upper-middle-income,Current female smoking (%),45,4.00,1.90,9.50,0.10,39.10
+Income group,Upper-middle-income,Historical female smoking (%),45,7.60,4.30,13.43,0.27,39.03
+Income group,Upper-middle-income,Clean-fuel deficit (percentage points),52,11.15,4.70,19.38,0.10,77.00
+Income group,Upper-middle-income,Urban-rural clean-fuel gap (percentage points),52,17.50,6.75,34.59,0.00,86.20
+Income group,Upper-middle-income,Ambient PM2.5 (micrograms per cubic metre),53,17.83,12.04,25.17,6.81,41.30
+Income group,Upper-middle-income,"Age-standardised female LC incidence (per 100,000)",53,8.14,6.28,11.33,2.46,28.16
+WHO region,African,Current female smoking (%),39,1.20,0.60,2.30,0.30,6.50
+WHO region,African,Historical female smoking (%),39,2.43,1.17,5.08,0.50,10.77
+WHO region,African,Clean-fuel deficit (percentage points),47,89.10,58.10,97.35,0.00,100.00
+WHO region,African,Urban-rural clean-fuel gap (percentage points),47,19.00,2.30,43.00,0.00,71.30
+WHO region,African,Ambient PM2.5 (micrograms per cubic metre),47,28.00,17.28,37.89,10.48,56.37
+WHO region,African,"Age-standardised female LC incidence (per 100,000)",47,3.85,2.84,5.90,0.82,11.10
+WHO region,Americas,Current female smoking (%),26,3.70,2.12,8.40,1.70,26.70
+WHO region,Americas,Historical female smoking (%),26,7.73,4.18,18.75,2.80,38.33
+WHO region,Americas,Clean-fuel deficit (percentage points),35,5.45,0.00,12.65,0.00,95.80
+WHO region,Americas,Urban-rural clean-fuel gap (percentage points),35,7.30,0.00,20.30,0.00,76.40
+WHO region,Americas,Ambient PM2.5 (micrograms per cubic metre),35,11.78,9.19,16.11,5.20,29.07
+WHO region,Americas,"Age-standardised female LC incidence (per 100,000)",35,7.68,6.04,10.89,3.91,34.00
+WHO region,Eastern Mediterranean,Current female smoking (%),16,2.00,1.48,3.52,0.40,25.70
+WHO region,Eastern Mediterranean,Historical female smoking (%),16,3.92,2.95,7.34,0.53,29.93
+WHO region,Eastern Mediterranean,Clean-fuel deficit (percentage points),19,0.70,0.00,42.65,0.00,96.30
+WHO region,Eastern Mediterranean,Urban-rural clean-fuel gap (percentage points),19,0.70,0.00,9.35,0.00,68.10
+WHO region,Eastern Mediterranean,Ambient PM2.5 (micrograms per cubic metre),22,33.25,25.32,51.40,13.44,64.08
+WHO region,Eastern Mediterranean,"Age-standardised female LC incidence (per 100,000)",21,4.91,3.51,7.03,2.02,19.88
+WHO region,European,Current female smoking (%),49,19.50,11.90,24.00,0.10,39.10
+WHO region,European,Historical female smoking (%),49,23.87,15.73,29.40,0.27,40.73
+WHO region,European,Clean-fuel deficit (percentage points),52,0.00,0.00,1.72,0.00,59.80
+WHO region,European,Urban-rural clean-fuel gap (percentage points),52,0.00,0.00,2.85,0.00,46.20
+WHO region,European,Ambient PM2.5 (micrograms per cubic metre),53,13.51,9.52,19.06,5.47,53.65
+WHO region,European,"Age-standardised female LC incidence (per 100,000)",53,14.50,9.07,22.83,3.70,56.17
+WHO region,South-East Asia,Current female smoking (%),10,2.05,0.68,3.62,0.00,5.40
+WHO region,South-East Asia,Historical female smoking (%),10,7.63,2.89,10.53,0.00,27.57
+WHO region,South-East Asia,Clean-fuel deficit (percentage points),10,60.80,20.07,73.53,0.40,87.90
+WHO region,South-East Asia,Urban-rural clean-fuel gap (percentage points),10,33.90,16.45,45.70,0.40,54.80
+WHO region,South-East Asia,Ambient PM2.5 (micrograms per cubic metre),10,26.63,24.07,40.20,13.00,50.17
+WHO region,South-East Asia,"Age-standardised female LC incidence (per 100,000)",10,4.41,3.58,10.33,2.98,15.65
+WHO region,Western Pacific,Current female smoking (%),25,7.60,4.00,15.50,0.50,44.60
+WHO region,Western Pacific,Historical female smoking (%),25,13.33,5.53,24.13,1.97,58.10
+WHO region,Western Pacific,Clean-fuel deficit (percentage points),28,20.05,0.00,60.40,0.00,91.40
+WHO region,Western Pacific,Urban-rural clean-fuel gap (percentage points),28,18.45,0.00,39.66,-0.30,86.20
+WHO region,Western Pacific,Ambient PM2.5 (micrograms per cubic metre),28,8.52,7.59,19.73,6.74,41.30
+WHO region,Western Pacific,"Age-standardised female LC incidence (per 100,000)",28,12.53,10.11,16.73,3.31,46.65

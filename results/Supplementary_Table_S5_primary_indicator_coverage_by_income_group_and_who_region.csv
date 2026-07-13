@@ -1,0 +1,12 @@
+﻿stratifier,group,n_total,n_complete,complete_percent,coverage_female_smoking_2022,coverage_clean_fuel_2020,coverage_PM25_2019,coverage_female_LC_incidence_2021
+Income group,High-income,64,57,89.1,90.6,96.9,98.4,98.4
+Income group,Low-income,25,18,72.0,72.0,100.0,100.0,100.0
+Income group,Lower-middle-income,50,41,82.0,84.0,96.0,100.0,98.0
+Income group,Unclassified,5,2,40.0,40.0,80.0,80.0,80.0
+Income group,Upper-middle-income,53,45,84.9,84.9,98.1,100.0,100.0
+WHO region,African,47,39,83.0,83.0,100.0,100.0,100.0
+WHO region,Americas,36,26,72.2,72.2,97.2,97.2,97.2
+WHO region,Eastern Mediterranean,22,15,68.2,72.7,86.4,100.0,95.5
+WHO region,European,53,48,90.6,92.5,98.1,100.0,100.0
+WHO region,South-East Asia,10,10,100.0,100.0,100.0,100.0,100.0
+WHO region,Western Pacific,29,25,86.2,86.2,96.6,96.6,96.6

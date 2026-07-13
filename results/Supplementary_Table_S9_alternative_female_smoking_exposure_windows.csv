@@ -1,0 +1,6 @@
+﻿exposure_window,n,estimate,CI_low,CI_high,P,R2
+Female smoking 2000,163,0.3386,0.1755,0.5016,0.0001,0.5748
+Female smoking 2005,163,0.3207,0.1599,0.4815,0.0001,0.5626
+Female smoking 2010,163,0.2882,0.1344,0.4421,0.0003,0.5488
+Mean female smoking 2000-2010,163,0.3229,0.1626,0.4833,0.0001,0.5639
+Current female smoking 2022,163,0.1771,0.0167,0.3376,0.0307,0.5200

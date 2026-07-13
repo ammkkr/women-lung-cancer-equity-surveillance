@@ -1,0 +1,9 @@
+﻿analysis,n,estimate,CI_low,CI_high,P
+Primary HC3 model,163,0.3229,0.1626,0.4833,0.0001
+Excluding Cook's distance >4/n,152,0.4037,0.2775,0.5299,0.0000
+Additional adjustment for age 65+,163,0.2775,0.1170,0.4380,0.0008
+Population at least 1 million,137,0.4533,0.2654,0.6411,0.0000
+"Conley-type SE, 1500 km",144,0.4453,0.2857,0.6048,0.0000
+"Conley-type SE, 2500 km",144,0.4453,0.2777,0.6129,0.0000
+"Conley-type SE, 4000 km",144,0.4453,0.2628,0.6278,0.0000
+Moran's I (6-nearest-neighbour weights),144,0.1055,,,0.0090

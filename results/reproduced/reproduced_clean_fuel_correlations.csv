@@ -1,5 +1,0 @@
-x,y,y_label,n,rho,p_value
-clean_fuel_deficit,SDI,SDI,191,-0.8984690908448137,1.744861418837951e-69
-clean_fuel_deficit,HDI,HDI,161,-0.9089839678252788,2.600706164599276e-62
-clean_fuel_deficit,urbanisation,Urbanisation,189,-0.6628572332233776,2.764826336189814e-25
-clean_fuel_deficit,rural_clean_fuel_disadvantage,Rural clean-fuel disadvantage,191,0.708611210457754,1.9407560972313274e-30

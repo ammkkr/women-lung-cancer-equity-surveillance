@@ -1,0 +1,6 @@
+﻿Classification,Operational rule,Interpretation
+Adequate for this analysis,"Generally at least 80% country coverage, comparable definition and unit, machine-readable, and the required female/sex dimension",Usable in the primary analytic frame for its stated purpose
+Available with limitations,"Lower coverage or an important limitation in subgroup, time, uncertainty, comparability or standardisation","Usable only for restricted description, context or sensitivity analysis"
+Source located but not sufficiently harmonised/integrated,A relevant global or multi-country source was verified but could not be integrated into the prespecified frame,Do not describe the component as absent; identify the integration limitation
+No compatible global indicator identified,No source meeting the country-level compatibility requirements was identified in the predefined search,"A source-frame result, not proof that no local data exist"
+Not applicable,The audit dimension is not conceptually applicable to the component,Excluded from adequacy interpretation for that cell

@@ -1,6 +1,5 @@
+results_generated/
+.paper/
 __pycache__/
 *.pyc
-.DS_Store
-.ipynb_checkpoints/
-.cache/
-.mpl_cache/
+~$*

@@ -1,0 +1,6 @@
+﻿analysis,term,n,estimate,CI_low,CI_high,P,R2
+"Global, mutually adjusted",z_pm25,161,-0.0093,-0.1305,0.1120,0.8803,0.0005
+"Non-high-income, mutually adjusted",z_pm25,104,0.1239,0.0133,0.2346,0.0285,0.0664
+Non-high-income + WHO region,z_pm25,104,0.1059,-0.0423,0.2541,0.1593,0.1066
+PM2.5 x high-income interaction,pm25_x_high_income,161,-0.3481,-0.5639,-0.1323,0.0017,0.0568
+Interaction after Cook's distance exclusion,pm25_x_high_income,151,-0.2863,-0.4189,-0.1537,0.0000,0.0815
