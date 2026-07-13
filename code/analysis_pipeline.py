@@ -1237,11 +1237,22 @@ def save_main_figures(country: pd.DataFrame, src: pd.DataFrame, effects: pd.Data
     )
     lower3 = outer3[1, 0].subgridspec(1, 3, width_ratios=[2.45, .95, 1.12], wspace=.38)
     bsub = lower3[0, 0].subgridspec(1, 3, wspace=.34)
-    distribution_axis(fig3.add_subplot(bsub[0, 0]), country, "female_smoking_2022", "Female smoking", "Prevalence (%)", (0, 55))
-    distribution_axis(fig3.add_subplot(bsub[0, 1]), country, "clean_fuel_deficit", "Clean-fuel deficit", "Population without access (%)", (0, 102))
-    distribution_axis(fig3.add_subplot(bsub[0, 2]), country, "PM25_2019", "Ambient PM$_{2.5}$", "Annual mean (micrograms/m$^3$)")
-    fig3.text(.026, .452, "B", fontsize=11.5, fontweight="bold")
-    fig3.text(.049, .452, "Country distributions by income group", fontsize=10, fontweight="bold")
+    b_axes = [fig3.add_subplot(bsub[0, i]) for i in range(3)]
+    distribution_axis(b_axes[0], country, "female_smoking_2022", "Female smoking", "Prevalence (%)", (0, 55))
+    distribution_axis(b_axes[1], country, "clean_fuel_deficit", "Clean-fuel deficit", "Population without access (%)", (0, 102))
+    distribution_axis(b_axes[2], country, "PM25_2019", "Ambient PM$_{2.5}$", "Annual mean (micrograms/m$^3$)")
+    b_left = b_axes[0].get_position().x0
+    b_heading_y = max(ax.get_position().y1 for ax in b_axes) + .020
+    fig3.text(b_left - .018, b_heading_y, "B", fontsize=11.5, fontweight="bold", ha="right", va="bottom")
+    fig3.text(
+        b_left,
+        b_heading_y,
+        "Country distributions by income group",
+        fontsize=10,
+        fontweight="bold",
+        ha="left",
+        va="bottom",
+    )
     plot_clean_fuel_dumbbell(fig3.add_subplot(lower3[0, 1]), country)
     plot_country_urban_rural_access(fig3.add_subplot(lower3[0, 2]), country)
     base3 = FIG_DIR / "Figure3_exposure_geography_and_income_inequalities"
