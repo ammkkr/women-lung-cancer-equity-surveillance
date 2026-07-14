@@ -1315,13 +1315,83 @@ def plot_source_workflow(fig: plt.Figure) -> None:
         (.16, .25, .28, .20, "5  Eligibility dimensions", "Coverage, sex, residence, SES, time,\ncomparability, machine-readability,\nuncertainty and age standardisation"),
         (.56, .25, .28, .20, "6  Final classification", "Adequate; limited; source located but\nnot integrated; no compatible global\nindicator; not applicable"),
     ]
+
+    # Route connectors through the whitespace between boxes. Drawing them first
+    # lets the box faces mask any sub-pixel overlap at the attachment points.
+    connector = "#6D8E88"
+    straight_arrows = [
+        ((.255, .78), (.295, .78)),
+        ((.545, .78), (.585, .78)),
+        ((.765, .78), (.805, .78)),
+        ((.445, .35), (.555, .35)),
+    ]
+    for start, end in straight_arrows:
+        ax.annotate(
+            "",
+            xy=end,
+            xytext=start,
+            xycoords=ax.transAxes,
+            zorder=1,
+            arrowprops={
+                "arrowstyle": "-|>",
+                "color": connector,
+                "lw": 1.2,
+                "mutation_scale": 10,
+                "shrinkA": 0,
+                "shrinkB": 0,
+            },
+        )
+
+    elbow = mpl.path.Path(
+        [
+            (.885, .674),
+            (.885, .565),
+            (.885, .555),
+            (.875, .555),
+            (.310, .555),
+            (.300, .555),
+            (.300, .545),
+            (.300, .456),
+        ],
+        [
+            mpl.path.Path.MOVETO,
+            mpl.path.Path.LINETO,
+            mpl.path.Path.CURVE3,
+            mpl.path.Path.CURVE3,
+            mpl.path.Path.LINETO,
+            mpl.path.Path.CURVE3,
+            mpl.path.Path.CURVE3,
+            mpl.path.Path.LINETO,
+        ],
+    )
+    ax.add_patch(
+        patches.FancyArrowPatch(
+            path=elbow,
+            arrowstyle="-|>",
+            mutation_scale=10,
+            color=connector,
+            linewidth=1.2,
+            transform=ax.transAxes,
+            zorder=1,
+        )
+    )
+
     for x, y, w, h, title, body in boxes:
-        ax.add_patch(patches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.012,rounding_size=0.008", facecolor="#F6F8F7", edgecolor="#6D8E88", linewidth=1.1, transform=ax.transAxes))
-        ax.text(x + .015, y + h - .045, title, transform=ax.transAxes, fontsize=9, fontweight="bold", va="top")
-        ax.text(x + .015, y + h - .09, body, transform=ax.transAxes, fontsize=7.5, va="top", linespacing=1.35)
-    arrows = [((.25, .78), (.30, .78)), ((.54, .78), (.59, .78)), ((.76, .78), (.81, .78)), ((.885, .68), (.35, .45)), ((.44, .35), (.56, .35))]
-    for a, b in arrows:
-        ax.annotate("", xy=b, xytext=a, xycoords=ax.transAxes, arrowprops={"arrowstyle": "-|>", "color": "#6D8E88", "lw": 1.2})
+        ax.add_patch(
+            patches.FancyBboxPatch(
+                (x, y),
+                w,
+                h,
+                boxstyle="round,pad=0.0,rounding_size=0.008",
+                facecolor="#F6F8F7",
+                edgecolor=connector,
+                linewidth=1.1,
+                transform=ax.transAxes,
+                zorder=2,
+            )
+        )
+        ax.text(x + .015, y + h - .045, title, transform=ax.transAxes, fontsize=9, fontweight="bold", va="top", zorder=3)
+        ax.text(x + .015, y + h - .09, body, transform=ax.transAxes, fontsize=7.5, va="top", linespacing=1.35, zorder=3)
 
 
 def plot_missingness_heatmaps(fig: plt.Figure, country: pd.DataFrame) -> None:
