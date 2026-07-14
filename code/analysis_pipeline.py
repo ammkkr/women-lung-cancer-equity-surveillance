@@ -1310,8 +1310,8 @@ def plot_source_workflow(fig: plt.Figure) -> None:
     boxes = [
         (.04, .68, .21, .20, "1  Define domains", "Exposure, burden, care pathway,\nand socioeconomic outcomes"),
         (.30, .68, .24, .20, "2  Formal source frame", "WHO HIDR/HEAT, GHO, GHE,\nGBD-linked outputs, World Bank, HDI"),
-        (.59, .68, .17, .20, "3  Targeted checks", "IARC/GLOBOCAN, CanScreen5,\nCONCORD, GTSS/GATS"),
-        (.81, .68, .15, .20, "4  Independent assessment", "SW and JZ; agreement\nquantified before finalisation"),
+        (.585, .68, .175, .20, "3  Targeted checks", "IARC/GLOBOCAN,\nCanScreen5, CONCORD,\nand GTSS/GATS"),
+        (.795, .68, .185, .20, "4  Independent assessment", "SW and JZ; agreement\nquantified before\nfinalisation"),
         (.16, .25, .28, .20, "5  Eligibility dimensions", "Coverage, sex, residence, SES, time,\ncomparability, machine-readability,\nuncertainty and age standardisation"),
         (.56, .25, .28, .20, "6  Final classification", "Adequate; limited; source located but\nnot integrated; no compatible global\nindicator; not applicable"),
     ]
@@ -1321,8 +1321,8 @@ def plot_source_workflow(fig: plt.Figure) -> None:
     connector = "#6D8E88"
     straight_arrows = [
         ((.255, .78), (.295, .78)),
-        ((.545, .78), (.585, .78)),
-        ((.765, .78), (.805, .78)),
+        ((.545, .78), (.580, .78)),
+        ((.765, .78), (.790, .78)),
         ((.445, .35), (.555, .35)),
     ]
     for start, end in straight_arrows:
@@ -1344,10 +1344,10 @@ def plot_source_workflow(fig: plt.Figure) -> None:
 
     elbow = mpl.path.Path(
         [
-            (.885, .674),
-            (.885, .565),
-            (.885, .555),
-            (.875, .555),
+            (.8875, .674),
+            (.8875, .565),
+            (.8875, .555),
+            (.8775, .555),
             (.310, .555),
             (.300, .555),
             (.300, .545),
