@@ -1308,22 +1308,22 @@ def plot_source_workflow(fig: plt.Figure) -> None:
     ax = fig.add_subplot(111)
     ax.axis("off")
     boxes = [
-        (.04, .68, .21, .20, "1  Define domains", "Exposure, burden, care pathway,\nand socioeconomic outcomes"),
-        (.30, .68, .24, .20, "2  Formal source frame", "WHO HIDR/HEAT, GHO, GHE,\nGBD-linked outputs, World Bank, HDI"),
-        (.585, .68, .175, .20, "3  Targeted checks", "IARC/GLOBOCAN,\nCanScreen5, CONCORD,\nand GTSS/GATS"),
-        (.795, .68, .185, .20, "4  Independent assessment", "SW and JZ; agreement\nquantified before\nfinalisation"),
-        (.16, .25, .28, .20, "5  Eligibility dimensions", "Coverage, sex, residence, SES, time,\ncomparability, machine-readability,\nuncertainty and age standardisation"),
-        (.56, .25, .28, .20, "6  Final classification", "Adequate; limited; source located but\nnot integrated; no compatible global\nindicator; not applicable"),
+        (.04, .65, .21, .22, "1  Define domains", "Exposure, burden, care pathway,\nand socioeconomic outcomes"),
+        (.30, .65, .24, .22, "2  Formal source frame", "WHO HIDR/HEAT, GHO, GHE,\nGBD-linked outputs, World Bank, HDI"),
+        (.585, .65, .175, .22, "3  Targeted checks", "IARC/GLOBOCAN,\nCanScreen5, CONCORD,\nand GTSS/GATS"),
+        (.795, .65, .185, .22, "4  Independent\nassessment", "SW and JZ; agreement\nquantified before\nfinalisation"),
+        (.16, .27, .28, .23, "5  Eligibility dimensions", "Coverage, sex, residence, SES, time,\ncomparability, machine-readability,\nuncertainty and age standardisation"),
+        (.56, .27, .28, .23, "6  Final classification", "Adequate; limited; source located but\nnot integrated; no compatible global\nindicator; not applicable"),
     ]
 
     # Route connectors through the whitespace between boxes. Drawing them first
     # lets the box faces mask any sub-pixel overlap at the attachment points.
     connector = "#6D8E88"
     straight_arrows = [
-        ((.255, .78), (.295, .78)),
-        ((.545, .78), (.580, .78)),
-        ((.765, .78), (.790, .78)),
-        ((.445, .35), (.555, .35)),
+        ((.255, .76), (.295, .76)),
+        ((.545, .76), (.580, .76)),
+        ((.765, .76), (.790, .76)),
+        ((.445, .385), (.555, .385)),
     ]
     for start, end in straight_arrows:
         ax.annotate(
@@ -1344,14 +1344,14 @@ def plot_source_workflow(fig: plt.Figure) -> None:
 
     elbow = mpl.path.Path(
         [
-            (.8875, .674),
-            (.8875, .565),
-            (.8875, .555),
-            (.8775, .555),
-            (.310, .555),
-            (.300, .555),
-            (.300, .545),
-            (.300, .456),
+            (.8875, .645),
+            (.8875, .535),
+            (.8875, .525),
+            (.8775, .525),
+            (.310, .525),
+            (.300, .525),
+            (.300, .515),
+            (.300, .506),
         ],
         [
             mpl.path.Path.MOVETO,
@@ -1390,8 +1390,8 @@ def plot_source_workflow(fig: plt.Figure) -> None:
                 zorder=2,
             )
         )
-        ax.text(x + .015, y + h - .045, title, transform=ax.transAxes, fontsize=9, fontweight="bold", va="top", zorder=3)
-        ax.text(x + .015, y + h - .09, body, transform=ax.transAxes, fontsize=7.5, va="top", linespacing=1.35, zorder=3)
+        ax.text(x + .015, y + h - .035, title, transform=ax.transAxes, fontsize=9, fontweight="bold", va="top", linespacing=1.1, zorder=3)
+        ax.text(x + .015, y + h - .105, body, transform=ax.transAxes, fontsize=7.5, va="top", linespacing=1.35, zorder=3)
 
 
 def plot_missingness_heatmaps(fig: plt.Figure, country: pd.DataFrame) -> None:
@@ -1558,7 +1558,7 @@ def save_supplementary_figures(country: pd.DataFrame, model_stats: dict[str, obj
                                corr: pd.DataFrame, window: pd.DataFrame,
                                robust: pd.DataFrame) -> list[Path]:
     apply_figure_style(); SUPP_FIG_DIR.mkdir(parents=True, exist_ok=True); out=[]
-    fig=plt.figure(figsize=(12.2,6.6)); plot_source_workflow(fig); base=SUPP_FIG_DIR/"Figure_S1_source_identification_and_audit_workflow"; save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
+    fig=plt.figure(figsize=(12.2,5.4)); plot_source_workflow(fig); base=SUPP_FIG_DIR/"Figure_S1_source_identification_and_audit_workflow"; save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(12.5,5.5)); plot_missingness_heatmaps(fig,country); base=SUPP_FIG_DIR/"Figure_S2_missingness_by_income_and_WHO_region";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(9.5,5.6));plot_audit_status_counts(fig.add_subplot(111));base=SUPP_FIG_DIR/"Figure_S3_audit_classification_counts";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
     fig=plt.figure(figsize=(12.0,8.0));plot_region_distributions(fig,country);base=SUPP_FIG_DIR/"Figure_S4_exposure_and_incidence_by_WHO_region";save_pub(fig,base);plt.close(fig);out.append(base.with_suffix('.png'))
